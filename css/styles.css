@@ -1,0 +1,44 @@
+:root{--bg:#fff9f0;--card:#fff;--ink:#2b3a67;--mut:#667089;--bd:#e4e9f2;--c1:#ff6b6b;--c2:#3aafa9;--c3:#7c6bff;--c4:#4caf7d;--hl:#ffd166;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#161a2b;--card:#20263d;--ink:#eef1ff;--mut:#a9b1cb;--bd:#323a5a;--hl:#8a6d00}}
+:root[data-theme="dark"]{--bg:#161a2b;--card:#20263d;--ink:#eef1ff;--mut:#a9b1cb;--bd:#323a5a;--hl:#8a6d00}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:18px/1.6 system-ui,-apple-system,Verdana,sans-serif}
+header{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--card);border-bottom:2px solid var(--bd);display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:8px 16px}
+header b{font-size:22px;margin-right:12px}
+nav{display:flex;flex-wrap:wrap;gap:6px}
+nav button{border:0;border-radius:999px;padding:8px 16px;font:inherit;font-size:16px;background:none;color:var(--ink);cursor:pointer}
+nav button.a{background:var(--c1);color:#fff;font-weight:700}
+main{max-width:1000px;margin:0 auto;padding:20px 16px 60px}
+h1{font-size:30px;margin:.2em 0}h2{margin:.3em 0}h3{margin:.2em 0}
+.mut{color:var(--mut)}i{color:var(--mut)}
+.hero{background:var(--card);border:2px solid var(--bd);border-radius:20px;padding:28px}
+.btn,.lnk,.ic{font:inherit;cursor:pointer;border:0}
+.btn{background:var(--c1);color:#fff;font-weight:700;border-radius:999px;padding:12px 24px;font-size:18px;margin:4px 4px 4px 0}
+.btn.t{background:var(--c2)}.btn.p{background:var(--c3)}.btn.g{background:var(--c4)}.btn.s{background:#8a94a6}
+.lnk{background:none;color:var(--c1);text-decoration:underline}
+.ic{background:var(--c3);color:#fff;border-radius:50%;width:40px;height:40px;font-size:18px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:14px;margin:14px 0}
+.g2{grid-template-columns:repeat(auto-fill,minmax(230px,1fr))}
+.card{background:var(--card);border:2px solid var(--bd);border-radius:16px;padding:14px;color:var(--ink);font:inherit;text-align:center}
+button.card{cursor:pointer}button.card:hover,button.card:focus-visible{border-color:var(--c3);outline:none}
+.card .big{display:block;font-size:44px;font-weight:800;color:var(--c1)}
+.tabs{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0}
+.tabs button{border:0;border-radius:999px;padding:8px 16px;font:inherit;font-size:16px;background:var(--bd);color:var(--ink);cursor:pointer}
+.tabs button.a{background:var(--c3);color:#fff;font-weight:700}
+.row{display:flex;flex-wrap:wrap;align-items:center;gap:10px}
+.tile{display:inline-block;min-width:56px;padding:8px 12px;margin:3px;border-radius:12px;background:var(--c2);color:#fff;font-size:30px;font-weight:800;text-align:center}
+.tile.on{background:var(--c1);transform:scale(1.15)}
+.wb{text-align:left;display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+.wb.done .tile{background:var(--c4)}
+textarea{width:100%;min-height:240px;font:inherit;font-size:19px;padding:14px;border-radius:14px;border:2px solid var(--bd);background:var(--card);color:var(--ink)}
+.view{background:var(--card);border:2px solid var(--bd);border-radius:14px;padding:16px;min-height:200px;max-height:55vh;overflow-y:auto;white-space:pre-wrap;font-size:20px;line-height:1.9}
+.view span{cursor:pointer;border-radius:5px}.view span:hover{background:var(--bd)}
+.view span.on{background:var(--hl)}
+.look{background:var(--card);border:2px solid var(--c3);border-radius:14px;padding:14px;margin-top:12px}
+.look .lw{font-size:26px;color:var(--c1)}
+.look input,.rate{font:inherit;padding:8px;border-radius:10px;border:2px solid var(--bd);background:var(--card);color:var(--ink)}
+.drop{display:block;border:3px dashed var(--c2);border-radius:16px;padding:22px;text-align:center;cursor:pointer;background:var(--card)}
+.wc{text-align:left}.wc p{margin:.2em 0}
+.ok{background:var(--c4)!important;color:#fff}.no{background:#8a94a6!important;color:#fff}
+[hidden]{display:none!important}

@@ -1,0 +1,7 @@
+{
+  "name": "phonicspal",
+  "version": "0.1.0",
+  "description": "Interactive English phonics learning and reading practice website (MVP)",
+  "private": true,
+  "scripts": { "start": "npx serve ." }
+}
