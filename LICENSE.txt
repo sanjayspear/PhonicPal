@@ -1,0 +1,12 @@
+PROPRIETARY LICENSE
+ALL RIGHTS RESERVED
+
+Copyright (c) 2026 Sanjay Y M and Ashok Kumar S.
+
+This repository is publicly available for viewing on GitHub. Except for that
+viewing access and any rights that cannot be excluded under applicable law, no
+permission or license is granted to copy, modify, distribute, sublicense, or
+use this software or its associated assets.
+
+All rights are reserved by the copyright holders. Any other use requires prior
+written permission from the copyright holders.
