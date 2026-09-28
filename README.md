@@ -8,58 +8,47 @@ Interactive English phonics and reading practice website (MVP). Plain HTML/CSS/J
 
 Use Chrome or Edge for the best text-to-speech and word highlighting. Internet is needed to load PDF.js and JSZip from the cdnjs CDN.
 
-## Screens
-
-PhonicsPal is organized around five learning screens, accessible from the top navigation.
-
-### Home
-
-The home screen introduces the learning path, from sounds and blending through words, sentences, and books. Shortcuts open the phonics, reading, book-library, and vocabulary activities. A word-of-the-day panel adds a quick vocabulary prompt.
-
-![PhonicsPal home screen with learning shortcuts and word of the day](screenshots/home.png)
-
-### Phonics
-
-The phonics screen groups activities into vowel sounds, consonant sounds, vowel blending, consonant blending, and word-blending practice. Learners can listen to individual sounds and use the blend controls to hear them combined.
-
-![Phonics practice screen with sound groups and word-blending cards](screenshots/phonics.png)
-
-### Read With Me
-
-Learners can paste or enter text to hear it read aloud, with controls to pause, resume, stop, edit the text, and choose a reading voice. Selecting a word supports vocabulary lookup while reading.
-
-![Read With Me screen with text input and playback controls](screenshots/read-with-me.png)
-
-### My Books
-
-The book library accepts PDF, TXT, and EPUB files up to 15 MB. Uploaded books can be opened for reading aloud, and library items can be deleted. Supported documents are shown in the reading area.
-
-![My Books screen showing the upload area and an open book](screenshots/my-books.png)
-
-### My Vocabulary
-
-Vocabulary is organized into All Words, Saved by Me, Starter List, and Practice views. Word entries include a part of speech, definition, example sentence, and a listen control; the practice view supports review.
-
-![My Vocabulary screen showing word cards and vocabulary filters](screenshots/my-vocabulary.png)
-
-## Current Look and Feel
-
-The interface uses a warm off-white page background with white content panels, dark navy headings, and rounded, lightly outlined surfaces. Coral highlights the active main-navigation item and primary actions; teal, green, and violet distinguish activity controls and secondary actions. The layout favors clear labels, generous spacing, and compact word and sound tiles, keeping the experience approachable while making each learning activity easy to scan.
-
 ## Structure
 | File | Purpose |
 |---|---|
 | `index.html` | Page markup and script loading order |
 | `css/styles.css` | Theme (light/dark), layout, components |
 | `js/core.js` | Helpers, localStorage wrapper, `sp()` speech helper, navigation |
-| `js/dictionary.js` | Starter dictionary (37 words), word lookup panel, save word |
+| `js/env.js` | Environment detection (file/localhost/public, secure context, memory tier) that decides which voice engines are offered |
+| `js/curriculum.js` | Datasets: consonant digraphs, r-controlled vowels, diphthongs (ids, graphemes, IPA, examples, «marked» sentences) |
+| `js/speech.js` | SpeechService: natural voice (Kokoro, open source) + browser-voice fallback, phoneme playback |
+| `js/dictionary.js` | Starter dictionary (37 words), online lookup (Free Dictionary API with Wiktionary/Datamuse fallbacks), word lookup panel, save word |
 | `js/reader.js` | Reader: text-to-speech, word highlight, pause/resume/stop, paging |
-| `js/phonics.js` | Vowel/consonant/blend data and phonics screens |
-| `js/books.js` | Upload (PDF/TXT/EPUB, 15 MB), text extraction, IndexedDB library |
+| `js/custom-phonics.js` | User-added phonics cards (localStorage `pp_custom_ph`) and the "Add Custom Blend" form |
+| `js/phonics.js` | Vowel (short + long)/consonant/blend data and phonics screens |
+| `assets/audio/` | Recorded phonics sounds and example words (mp3) |
+| `tools/` | Scripts used to generate the audio |
+| `js/books.js` | Upload (PDF/TXT/EPUB, 35 MB), text extraction, IndexedDB library |
 | `js/vocabulary.js` | My Vocabulary list and practice quiz |
 | `js/home.js` | Home page word of the day, initial route |
 
 Scripts are classic (non-module) and share globals, so **load order in `index.html` matters**.
+
+## Phonics sounds (recorded audio)
+All phonics sounds and example words are **pre-rendered audio files** in `assets/audio/` (`s_<id>.mp3` sounds, `w_<word>.mp3` words), made with the open-source Kokoro voice, so they play instantly and identically in every browser with no model download. Vowels cover short and long sounds (a e i o u / ā ē ī ō ū) with the example words from the requirements. If a file is missing the app falls back to the browser voice.
+To regenerate or tweak them, see `tools/gen_audio.py` (needs Python, `kokoro-onnx`, `praat-parselmouth`, ffmpeg and the Kokoro model files). Or just replace any mp3 with a better recording using the same file name.
+
+## Natural voice
+The app uses **Kokoro-82M** (Apache-2.0, open source) through `kokoro-js`, running fully in the browser (WASM). The first visit downloads ~90 MB once; the browser caches it after that. Use the voice selectors in the header to switch between Natural and Browser voice or change the speaker. Until the model finishes loading (or if it fails), the browser voice is used.
+
+If you choose **Browser voice** (or the natural voice can't load), the app auto-picks the most natural voice installed (Edge "Natural/Online" voices, macOS Premium/Enhanced voices, Google, Siri) and marks the best ones with ★ in the voice list.
+The natural voice is used for the Reader, word lookup and vocabulary.
+Serve the folder over http(s) (Live Server / GitHub Pages) so model caching works; opening `index.html` via `file://` may re-download the model each visit.
+
+### Troubleshooting voice
+- The header shows the voice status. If it says "using browser voice", press F12 > Console and read the `Natural voice` warning.
+- The first tap of each sound/word takes a moment while the natural voice generates it (then it is cached for that visit).
+- If natural voice errors 3 times it switches itself off; re-select "Natural voice" in the header to retry.
+- Always open through Live Server or GitHub Pages, not `file://`.
+
+## Voice engines by environment
+`js/env.js` sets `ENV`. On `file://` or non-secure pages only the browser voice is offered. On localhost and public hosts (GitHub Pages works fine) the app offers **Kokoro** (best quality) and **Piper** (lighter, default on phones / low-memory devices), plus the browser voice. Add an engine by adding an entry to `ENGINES` in `js/speech.js` (`load()` and `text()`). Piper is new and untested in a real browser; if it fails the app falls back to the browser voice.
+GitHub Pages cannot send COOP/COEP headers, so WebAssembly runs single-threaded (`ENV.isolated` is false). Sherpa-ONNX (browser WASM TTS) needs you to build the WASM bundle with a model packed in and host it yourself, so it is not included.
 
 ## Ideas for next steps
 - Larger dictionary (bundled JSON word list, or a dictionary API called from a backend)
