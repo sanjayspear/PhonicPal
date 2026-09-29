@@ -744,3 +744,290 @@ a.btn {
 .btn.gut {
     background: linear-gradient(135deg, var(--c3), var(--c2))
 }
+/* ---------- Kid-friendly phonics: pictures, colours, mascot, grown-up guide, game ---------- */
+:root {
+    --k1: #ffe3e3;
+    --k2: #dff5f3;
+    --k3: #ece8ff;
+    --k4: #e2f5ea;
+    --k5: #fff1cc
+}
+
+@media(prefers-color-scheme:dark) {
+    :root:not([data-theme="light"]) {
+        --k1: #3a2530;
+        --k2: #1f3a3a;
+        --k3: #2c2750;
+        --k4: #203a2c;
+        --k5: #3d3520
+    }
+}
+
+:root[data-theme="dark"] {
+    --k1: #3a2530;
+    --k2: #1f3a3a;
+    --k3: #2c2750;
+    --k4: #203a2c;
+    --k5: #3d3520
+}
+
+/* each card gets a soft colour of its own */
+.grid>.ph-card:nth-child(5n+1),
+.vpair:nth-child(5n+1) .ph-card { background: var(--k1) }
+.grid>.ph-card:nth-child(5n+2),
+.vpair:nth-child(5n+2) .ph-card { background: var(--k2) }
+.grid>.ph-card:nth-child(5n+3),
+.vpair:nth-child(5n+3) .ph-card { background: var(--k3) }
+.grid>.ph-card:nth-child(5n+4),
+.vpair:nth-child(5n+4) .ph-card { background: var(--k4) }
+.grid>.ph-card:nth-child(5n),
+.vpair:nth-child(5n) .ph-card { background: var(--k5) }
+
+.ph-card { border-radius: 22px }
+
+.ph-pic {
+    font-size: 40px;
+    line-height: 1.1
+}
+
+.ph-card:active .ph-pic { animation: kid-bounce .4s ease }
+
+.tabs .ticon { margin-right: 6px }
+
+.kid-start {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px;
+    text-align: left;
+    background: var(--k5);
+    border-color: var(--hl);
+    margin: 10px 0
+}
+
+.kid-start>div { flex: 1 1 220px }
+
+.kid-owl {
+    font-size: 40px;
+    line-height: 1
+}
+
+.kid-mascot {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 8px 0 0
+}
+
+.kid-bubble {
+    position: relative;
+    margin: 0;
+    background: var(--card);
+    border: 2px solid var(--c3);
+    border-radius: 18px;
+    padding: 8px 14px;
+    font-size: 20px;
+    font-weight: 700
+}
+
+.kid-bar { margin: 6px 0 }
+
+.kid-btn {
+    font-size: 18px;
+    padding: 12px 20px
+}
+
+.kid-btn.play {
+    background: linear-gradient(135deg, var(--c1), #ff9f43);
+    box-shadow: 0 4px 0 rgba(0, 0, 0, .15)
+}
+
+.kid-stars {
+    font-weight: 700;
+    font-size: 18px
+}
+
+.guide-dlg { max-height: 88vh }
+
+.gd-sec h3 {
+    margin-top: 14px;
+    color: var(--c3)
+}
+
+/* the game */
+.game-dlg {
+    width: min(640px, calc(100vw - 24px));
+    max-height: 92vh;
+    border: 4px solid var(--c3);
+    border-radius: 28px;
+    padding: 18px;
+    background: var(--card);
+    color: var(--ink);
+    text-align: center;
+    overflow: auto
+}
+
+.game-dlg::backdrop { background: rgba(43, 58, 103, .55) }
+
+.ghead {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px
+}
+
+.ghead h2 {
+    font-size: 22px;
+    text-align: left
+}
+
+.gclose {
+    position: static;
+    width: 44px;
+    height: 44px;
+    font-size: 20px
+}
+
+.gstars {
+    font-size: 34px;
+    letter-spacing: 4px
+}
+
+.gstar.on { animation: kid-pop .5s ease }
+
+.gprompt {
+    font-size: 24px;
+    font-weight: 800;
+    margin: 8px 0
+}
+
+.gpic {
+    font-size: 96px;
+    line-height: 1.1
+}
+
+.gword {
+    font-size: 26px;
+    font-weight: 800;
+    margin: 0 0 6px;
+    color: var(--c3)
+}
+
+.gtiles {
+    display: flex;
+    justify-content: center;
+    margin: 6px 0
+}
+
+.gchoices {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 14px;
+    margin: 16px 0 6px
+}
+
+.gchoice {
+    min-height: 120px;
+    border: 4px solid var(--bd);
+    border-radius: 24px;
+    background: var(--k3);
+    color: var(--ink);
+    font: inherit;
+    font-size: 56px;
+    font-weight: 800;
+    cursor: pointer;
+    touch-action: manipulation
+}
+
+.gchoices.pics .gchoice { font-size: 72px }
+.gchoice:nth-child(2) { background: var(--k2) }
+.gchoice:nth-child(3) { background: var(--k5) }
+
+.gchoice.right {
+    border-color: var(--c4);
+    background: var(--k4);
+    animation: kid-pop .5s ease
+}
+
+.gchoice.wiggle { animation: kid-wiggle .45s ease }
+
+.gchoice:disabled:not(.right) { opacity: .35 }
+
+.gfeedback {
+    min-height: 1.6em;
+    font-size: 24px;
+    font-weight: 800;
+    color: var(--c4)
+}
+
+.gsticker {
+    font-size: 110px;
+    line-height: 1.1;
+    animation: kid-pop .7s ease
+}
+
+.gend { justify-content: center }
+
+.gconfetti {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    overflow: hidden
+}
+
+.conf {
+    position: absolute;
+    top: -40px;
+    font-size: 28px;
+    animation: kid-fall 2.6s linear forwards
+}
+
+@keyframes kid-bounce {
+    50% { transform: translateY(-8px) scale(1.1) }
+}
+
+@keyframes kid-pop {
+    0% { transform: scale(.6) }
+    60% { transform: scale(1.15) }
+    100% { transform: scale(1) }
+}
+
+@keyframes kid-wiggle {
+    20%, 60% { transform: translateX(-10px) rotate(-3deg) }
+    40%, 80% { transform: translateX(10px) rotate(3deg) }
+}
+
+@keyframes kid-fall {
+    to { transform: translateY(110vh) rotate(540deg) }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .ph-card:active .ph-pic,
+    .gstar.on,
+    .gchoice.right,
+    .gchoice.wiggle,
+    .gsticker { animation: none }
+}
+
+@media(max-width:599px) {
+    .gchoice { min-height: 96px; font-size: 44px }
+    .gchoices.pics .gchoice { font-size: 56px }
+    .gpic { font-size: 80px }
+}
+
+/* letters stay easy to read on every pastel card */
+.ph-card .big { color: var(--ink) }
+
+.gword mark {
+    background: var(--hl);
+    color: inherit;
+    border-radius: 6px;
+    padding: 0 4px
+}
+
+@media(max-width:599px) {
+    .gchoices {
+        grid-template-columns: repeat(auto-fit, minmax(88px, 1fr));
+        gap: 10px
+    }
+}

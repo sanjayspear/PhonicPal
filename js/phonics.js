@@ -18,17 +18,18 @@ function soundsOf(toks) {
 }
 const phStatus = message => { const el = $('#phstatus'); if (el) el.textContent = message };
 /* Curriculum modules (data lives in js/curriculum.js) */
-const toItems = list => list.map(d => ({ s: d.grapheme, k: d.audio, fb: d.grapheme, ex: d.examples, hint: d.hint, sentences: d.sentences }));
+const toItems = list => list.map(d => ({ s: d.grapheme, k: d.audio, ipa: d.ipa, fb: d.grapheme, ex: d.examples, hint: d.hint, sentences: d.sentences }));
 const DG = toItems(CURRICULUM.digraphs), RC = toItems(CURRICULUM.rControlled), DP = toItems(CURRICULUM.diphthongs);
+/* [name, items, intro, icon, mascot tip for kids] */
 const PT = [
-  ['Vowel Sounds', V, 'Short vowels on top, long vowels (that say their name) below. Tap a card to hear the sound and its words.'],
-  ['Consonant Sounds', C, 'Tap a card to hear the sound and an example word.'],
-  ['Vowel Teams', VB, 'Two letters team up to make one vowel sound.'],
-  ['Consonant Blending', CB, 'Two consonants blend together; you can still hear both sounds.'],
-  ['Consonant Digraphs', DG, 'Two letters team up to make one new sound (not a blend).'],
-  ['R-Controlled Vowels', RC, 'Bossy R changes the vowel sound before it.'],
-  ['Diphthongs', DP, 'Two vowel sounds glide together in one syllable.'],
-  ['Word Blending Practice', null, 'Listen to each sound, then hear them blend into a word.']];
+  ['Vowel Sounds', V, 'Short vowels on top, long vowels (that say their name) below. Tap a card to hear the sound and its words.', '🍎', 'Tap a card and say the sound with me!'],
+  ['Consonant Sounds', C, 'Tap a card to hear the sound and an example word.', '🐝', 'Every letter has its own sound. Let’s listen!'],
+  ['Vowel Teams', VB, 'Two letters team up to make one vowel sound.', '👯', 'These letters hold hands and make one sound.'],
+  ['Consonant Blending', CB, 'Two consonants blend together; you can still hear both sounds.', '🤝', 'Squish two sounds together: b… l… bl!'],
+  ['Consonant Digraphs', DG, 'Two letters team up to make one new sound (not a blend).', '🚂', 'Two letters, one new sound. Shhh!'],
+  ['R-Controlled Vowels', RC, 'Bossy R changes the vowel sound before it.', '🏴‍☠️', 'Bossy R talks like a pirate. Arrr!'],
+  ['Diphthongs', DP, 'Two vowel sounds glide together in one syllable.', '🎢', 'Your mouth slides like a slide: oi!'],
+  ['Word Blending Practice', null, 'Listen to each sound, then hear them blend into a word.', '🧩', 'Listen to the sounds, then say the word!']];
 const title = t => t.replace(/\b\w/g, c => c.toUpperCase());
 const labelOf = x => x.tag ? title(x.tag) + ' Sound' : (x.ex.length > 1 ? 'Example Words' : 'Example Word');
 /* Phonics owns the speaker from its last tap until anything else speaks (Speech.epoch changes).
@@ -43,6 +44,7 @@ function phCard(x) {
   b.title = 'Play the ' + x.s + ' sound and hear ' + x.ex.join(', ') + '.';
   b.setAttribute('aria-label', x.s + '. ' + lbl + ': ' + x.ex.join(', '));
   const cap = h('span', 'ph-cap'); cap.append(h('strong', 'ph-lbl', lbl + ':'), document.createTextNode(' '), h('span', 'ph-words', x.ex.join(', ')));
+  const pic = x.ex.map(picOf).find(Boolean); if (pic) { const p = h('span', 'ph-pic', pic); p.setAttribute('aria-hidden', 'true'); b.append(p) }
   b.append(h('span', 'big', x.s), cap); if (x.hint) b.append(h('small', 'ph-hint', x.hint));
   b.onclick = async () => {
     phStatus('Playing sound and example words…');
@@ -66,7 +68,7 @@ function sentenceList(items) {
 }
 let phTab = 0;   /* index of the open tab; custom-phonics.js reads it */
 function renderPh(i) {
-  stopPhonics(); phTab = i; $$('#ptabs button').forEach((b, j) => { const active = i === j; b.classList.toggle('a', active); b.setAttribute('aria-pressed', String(active)) }); $('#pintro').textContent = PT[i][2]; phStatus(PT[i][0] + ' ready. Choose a card to listen.'); const B = $('#pbody'); B.replaceChildren(); const items = PT[i][1]; let g;
+  stopPhonics(); phTab = i; $$('#ptabs button').forEach((b, j) => { const active = i === j; b.classList.toggle('a', active); b.setAttribute('aria-pressed', String(active)) }); $('#pintro').textContent = PT[i][2]; $('#pmascot').textContent = PT[i][4]; topicBar(i); phStatus(PT[i][0] + ' ready. Choose a card to listen.'); const B = $('#pbody'); B.replaceChildren(); const items = PT[i][1]; let g;
   if (items && i === 0) { g = h('div', 'vgrid'); for (let k = 0; k < 5; k++) { const pair = h('div', 'vpair'); pair.append(phCard(items[k]), phCard(items[k + 5])); g.append(pair) } }
   else if (items) { g = h('div', 'grid'); items.forEach(x => g.append(phCard(x))); customFor(i).forEach(c => g.append(withDel(i, customItem(i, c)))) }
   else {
@@ -89,5 +91,10 @@ function renderPh(i) {
   }
   B.append(g); if (items && items.some(x => x.sentences)) B.append(sentenceList(items))
 }
-PT.forEach((p, i) => { const b = h('button', 0, p[0]); b.onclick = () => renderPh(i); $('#ptabs').append(b) }); renderPh(0);
+/* tab: icon + name + a star once the topic's game has been won */
+PT.forEach((p, i) => {
+  const b = h('button'), ic = h('span', 'ticon', p[3]); ic.setAttribute('aria-hidden', 'true');
+  b.append(ic, document.createTextNode(p[0]), h('span', 'tstar')); b.onclick = () => renderPh(i); $('#ptabs').append(b)
+});
+renderPh(0);
 initCustomForm();

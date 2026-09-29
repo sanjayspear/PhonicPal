@@ -77,8 +77,18 @@
                         type="button" title="Close without saving">Close</button><span id="cf-msg" class="mut"
                         role="status"></span></div>
             </div>
+            <div class="card kid-start"><span class="kid-owl" aria-hidden="true">🦉</span>
+                <div><b>New to phonics?</b> <span class="mut">Find out what phonic sounds are and how to teach them,
+                        step by step.</span></div>
+                <button class="btn t kid-btn" id="phIntro" type="button"
+                    title="What phonics is and how to teach it">ℹ️ Start here</button>
+            </div>
             <div class="tabs" id="ptabs"></div>
+            <div class="kid-mascot"><span class="kid-owl" aria-hidden="true">🦉</span>
+                <p class="kid-bubble" id="pmascot"></p>
+            </div>
             <p class="mut" id="pintro"></p>
+            <div class="row kid-bar" id="ptopic"></div>
             <p class="mut action-status" id="phstatus" role="status" aria-live="polite">Ready to play a sound.</p>
             <div id="pbody"></div>
         </section>
@@ -357,6 +367,24 @@
         <p id="vmStatus" class="mut" role="status" aria-live="polite"></p>
         <div class="row tour-actions"><button class="btn" id="vmClose" type="button">Close</button></div>
     </dialog>
+    <dialog class="tour-dialog guide-dlg" id="guideDlg" aria-labelledby="guideTitle">
+        <p class="tour-progress">For parents and teachers</p>
+        <h2 id="guideTitle"></h2>
+        <div id="guideBody"></div>
+        <div class="row tour-actions"><button class="btn" id="guideClose" type="button">Got it</button></div>
+    </dialog>
+    <dialog class="game-dlg" id="gameDlg" aria-labelledby="gameTitle">
+        <div class="ghead">
+            <h2 id="gameTitle"></h2>
+            <button class="ph-x gclose" id="gameClose" type="button" aria-label="Close the game"
+                title="Close the game">✕</button>
+        </div>
+        <div class="gstars" id="gameStars" role="img"></div>
+        <p class="tour-progress" id="gameRound"></p>
+        <div id="gameStage"></div>
+        <p class="gfeedback" id="gameFeedback" role="status" aria-live="polite"></p>
+        <div class="gconfetti" id="gameConfetti" aria-hidden="true"></div>
+    </dialog>
     <script src="js/core.js"></script>
     <script src="js/env.js"></script>
     <script src="js/speech.js"></script>
@@ -364,7 +392,9 @@
     <script src="js/reader.js"></script>
     <script src="js/curriculum.js"></script>
     <script src="js/custom-phonics.js"></script>
+    <script src="js/phonics-guide.js"></script>
     <script src="js/phonics.js"></script>
+    <script src="js/phonics-game.js"></script>
     <script src="js/books.js"></script>
     <script src="js/vocabulary.js"></script>
     <script src="js/home.js"></script>
