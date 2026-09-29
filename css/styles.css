@@ -500,6 +500,17 @@ textarea {
     color: var(--ink)
 }
 
+.vm-row {
+    justify-content: space-between;
+    border-top: 1px solid var(--bd);
+    padding: 10px 0
+}
+
+.vm-row .vm-name {
+    flex: 1 1 180px;
+    font-weight: 700
+}
+
 .tour-dialog::backdrop {
     background: rgb(20 28 48 / 52%)
 }
