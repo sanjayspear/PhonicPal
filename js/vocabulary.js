@@ -16,8 +16,8 @@ function renderVocab() {
 function quiz() {
   const l = $('#vlist'), a = allWords(); l.replaceChildren(); const q = a[Math.floor(Math.random() * a.length)],
     opts = shuf([q, ...shuf(a.filter(x => x !== q)).slice(0, 2)]), c = h('div', 'card wc'); c.style.gridColumn = '1/-1';
-  c.append(h('h3', 0, 'Which word means:'), h('p', 0, '“' + q.m + '”')); const fb = h('p', 0, '');
-  opts.forEach(o => { const b = h('button', 'btn p', o.w); b.title = 'Choose ' + o.w + ' as your answer'; b.setAttribute('aria-pressed', 'false'); b.onclick = () => { opts.forEach((_, i) => c.querySelectorAll('button')[i].setAttribute('aria-pressed', String(opts[i] === o))); if (o === q) { b.className = 'btn ok'; fb.textContent = '🎉 Great job!'; sp(q.w, .7); const n = h('button', 'btn', 'Next word ▶'); n.title = 'Start another vocabulary question'; n.onclick = quiz; c.append(n) } else { b.className = 'btn no'; fb.textContent = 'Try again!' } }; c.append(b) });
+  c.append(h('h3', 0, 'Which word means:'), h('p', 0, '“' + q.m + '”')); const fb = h('p', 0, ''); fb.setAttribute('aria-live', 'polite');
+  const btns = opts.map(o => { const b = h('button', 'btn p', o.w); b.title = 'Choose ' + o.w + ' as your answer'; b.setAttribute('aria-pressed', 'false'); b.onclick = () => { btns.forEach((x, i) => x.setAttribute('aria-pressed', String(opts[i] === o))); if (o === q) { b.className = 'btn ok'; fb.textContent = '🎉 Great job!'; sp(q.w, .7); btns.forEach(x => x.disabled = true); const n = h('button', 'btn', 'Next word ▶'); n.title = 'Start another vocabulary question'; n.onclick = quiz; c.append(n); n.focus() } else { b.className = 'btn no'; fb.textContent = 'Try again!' } }; c.append(b); return b });
   c.append(fb); l.append(c)
 }
 VT.forEach(([k, n]) => { const b = h('button', 0, n); b.onclick = () => { vt = k; renderVocab() }; $('#vtabs').append(b) }); renderVocab();

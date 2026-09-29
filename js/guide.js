@@ -10,7 +10,7 @@ const tourSteps = [
     { title: '2. Choose where reading begins', text: 'In Read With Me, click in your text and place the cursor at the point where you want to start.' },
     { title: '3. Read from the cursor', text: 'Choose Read From Here. PhonicsPal starts at your cursor and continues through the rest of your text.' },
     { title: '4. Pause or continue', text: 'Pause holds your place. Resume continues from there. Stop ends the reading session and resets it.' },
-    { title: '5. Pick a voice', text: 'Choose Browser voice to start right away. Natural Voices are listed in Voice Settings and download only when you choose Download & Use Voice.' },
+    { title: '5. Pick a voice', text: 'Choose Browser voice to start right away. Natural Voices are listed in the voice menu at the top and download only when you choose Download & Activate Voice.' },
     { title: '6. Get help any time', text: 'Choose ? Help in the top navigation to see the full button guide, voice help, and troubleshooting. You can restart this tour there too.' }
 ];
 let tourStep = 0;

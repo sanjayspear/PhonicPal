@@ -100,7 +100,7 @@ const Speech = (() => {
       install.hidden = selectedEngine === 'browser';
       install.disabled = loading || (selectedEngine !== 'browser' && mode === selectedEngine && st[selectedEngine] === 'ready');
       if (selectedEngine !== 'browser') {
-        install.textContent = mode === selectedEngine && st[selectedEngine] === 'ready' ? 'Voice Active' : isInstalled(selectedEngine) ? 'Load & Use Saved Voice' : 'Download & Use Voice';
+        install.textContent = mode === selectedEngine && st[selectedEngine] === 'ready' ? 'Natural Voice Active ✓' : isInstalled(selectedEngine) ? 'Activate Saved Voice' : 'Download & Activate Voice';
       }
     }
     if (preview) {
@@ -126,7 +126,7 @@ const Speech = (() => {
         return await queue(false, g => play(prepare('The bright red bird flew over the green tree.', .85), {}, g));
       } finally {
         mode = previousMode;
-        status(previousMode === 'browser' ? 'Sample finished. Browser voice remains active; choose Download & Use to switch.' : 'Using ' + voiceName(previousMode) + ' ✓');
+        status(previousMode === 'browser' ? 'Sample finished. Browser voice remains active; choose Activate Saved Voice to switch.' : 'Using ' + voiceName(previousMode) + ' ✓');
         syncVoiceControls();
       }
     }
@@ -139,11 +139,14 @@ const Speech = (() => {
       const t = clip.fb || clip.text; if (!TTS || !t || g !== gen) return res();
       usingA = false; let done = false, to, remaining = Math.max(3000, t.length * 120 + 2500), armedAt = 0;
       const disarm = () => { if (to) { clearTimeout(to); to = null; remaining = Math.max(0, remaining - (Date.now() - armedAt)) } };
-      const fin = () => { if (done) return; done = true; clearTimeout(to); if (cur === fin) { cur = null; pauseCurrent = resumeCurrent = null } res() };
-      const arm = () => { if (done) return; armedAt = Date.now(); to = setTimeout(fin, remaining) };
+      /* screen off / page hidden: the browser may hold speech, so the safety net must not skip unread text */
+      const vis = () => { if (document.hidden) disarm(); else if (!paused) arm() };
+      const fin = () => { if (done) return; done = true; clearTimeout(to); document.removeEventListener('visibilitychange', vis); if (cur === fin) { cur = null; pauseCurrent = resumeCurrent = null } res() };
+      const arm = () => { if (done || to || document.hidden) return; armedAt = Date.now(); to = setTimeout(fin, remaining) };
       cur = fin; pauseCurrent = () => { disarm(); speechSynthesis.pause() }; resumeCurrent = () => { arm(); speechSynthesis.resume() };
       const u = new SpeechSynthesisUtterance(t), bv = pickB(); u.lang = 'en-US'; if (bv) { u.voice = bv; u.lang = bv.lang } u.rate = clip.rate;
       u.onstart = () => hk.start && hk.start(); u.onboundary = e => { if (hk.prog && clip.text && (!e.name || e.name === 'word')) hk.prog(e.charIndex) }; u.onend = u.onerror = fin;
+      document.addEventListener('visibilitychange', vis);
       if (!paused) arm();  /* safety net if the browser never reports the end */
       setTimeout(async () => { if (!await waitPlaying(g)) return fin(); speechSynthesis.resume(); speechSynthesis.speak(u) }, 40)
     })
@@ -151,7 +154,8 @@ const Speech = (() => {
   function playUrl(url, revoke, clip, hk, g) {
     return new Promise(res => {
       let raf = 0, done = false; usingA = true;
-      const cleanup = () => { cancelAnimationFrame(raf); A.onended = A.onerror = null; if (revoke) URL.revokeObjectURL(url) };
+      /* usingA = false so a later resume() never restarts this finished clip */
+      const cleanup = () => { cancelAnimationFrame(raf); A.onended = A.onerror = null; usingA = false; if (revoke) URL.revokeObjectURL(url) };
       const fin = () => { if (done) return; done = true; cleanup(); A.pause(); if (cur === fin) cur = null; res() };
       const bail = err => { if (done) return; done = true; cleanup(); console.warn('Audio failed', err); if (cur === fin) cur = null; res(playBrowser(clip, hk, g)) };
       cur = fin; A.onended = fin; A.onerror = bail; A.src = url;
@@ -164,8 +168,13 @@ const Speech = (() => {
     if (clip.url) { if (!await waitPlaying(g)) return; return playUrl(clip.url, false, clip, hk, g) }
     if (!clip.blob) return playBrowser(clip, hk, g);
     let blob, wt = setTimeout(() => status('Preparing voice…'), 400);
-    try { blob = await Promise.race([clip.blob, new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), 25000))]); clearTimeout(wt); ready() }
-    catch (e) { clearTimeout(wt); if (g !== gen) return; if (e.message !== 'stale') { fails++; console.warn('Natural voice error', e); status('Voice problem (' + String(e.message).slice(0, 40) + '), using browser voice') } return playBrowser(clip, hk, g) }
+    /* a hidden page (screen off) runs synthesis slower: wait longer before giving up on the natural voice */
+    try { blob = await Promise.race([clip.blob, new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), document.hidden ? 120000 : 25000))]); clearTimeout(wt); ready() }
+    catch (e) { clearTimeout(wt); if (g !== gen) return; if (e.message !== 'stale') {
+        fails++; console.warn('Natural voice error', e);
+        if (fails >= 3) { mode = 'browser'; syncVoiceControls(); status('Natural voice kept failing, so the browser voice is now active. Choose Activate Saved Voice to try again.') }
+        else status('Voice problem (' + String(e.message).slice(0, 40) + '), using browser voice')
+      } return playBrowser(clip, hk, g) }
     if (g !== gen || !await waitPlaying(g)) return;
     return playUrl(URL.createObjectURL(blob), true, clip, hk, g)
   }
@@ -179,6 +188,8 @@ const Speech = (() => {
   });
   Object.assign(api, {
     load, natural, prepare, play, stop, say, clip, preview, ENGINES,
+    /* changes on every stop/interrupt: a multi-step sequence (card, blend) checks it to know it was cut off */
+    epoch: () => gen,
     pause() { paused = true; if (usingA) A.pause(); else if (pauseCurrent) pauseCurrent(); else if (TTS) speechSynthesis.pause() },
     resume() { paused = false; releasePaused(); if (usingA) A.play(); else if (resumeCurrent) resumeCurrent(); else if (TTS) speechSynthesis.resume() },
     init() {
@@ -204,7 +215,7 @@ const Speech = (() => {
           } else mode = 'browser';
         } else LS.set('pp_bvoice', v.value);
         syncVoiceControls();
-        status(selectedEngine === 'browser' ? 'Using ' + v.value : mode === selectedEngine ? 'Using ' + voiceName(selectedEngine) + ' ✓' : 'Browser voice active. Choose Download & Use to activate ' + voiceName(selectedEngine) + '.');
+        status(selectedEngine === 'browser' ? 'Using ' + v.value : mode === selectedEngine ? 'Using ' + voiceName(selectedEngine) + ' ✓' : 'Browser voice active. Choose ' + (isInstalled(selectedEngine) ? 'Activate Saved Voice' : 'Download & Activate Voice') + ' to use ' + voiceName(selectedEngine) + '.');
       };
       const install = $('#vinstall');
       if (install) install.onclick = async () => {

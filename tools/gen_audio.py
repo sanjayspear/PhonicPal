@@ -38,7 +38,7 @@ for k,ph in CONS.items():
     if k=='x': pass
     report['s_'+k]=(round(save('s_'+k,seg,sr),2),None)
 # words
-WORDS='apple cat mat bag egg nest bed pen igloo fish pin sit octopus dog hot top umbrella cup bus sun cake rain baby game tree me feet equal kite night ice light boat rope note go unicorn cute flute rule ball goat hat jam lion moon pig queen rabbit tent van web box yak zebra bee cloud pie leaf snow blue brush clap frog grape star ship chip thumb hen stop thin'.split()
+WORDS='apple cat mat bag egg nest bed pen igloo fish pin sit octopus dog hot top umbrella cup bus sun cake rain baby game tree me feet equal kite night ice light boat rope note go unicorn cute flute rule ball goat hat jam lion moon pig queen rabbit tent van web box yak zebra bee cloud pie leaf snow blue brush clap frog grape star ship chip thumb hen stop thin music cube'.split()
 for w in dict.fromkeys(WORDS):
     a,sr=K.create(w,voice=VOICE,speed=0.9,lang='en-us',trim=True);a=np.asarray(a,dtype=np.float32)
     if not ok(a): print('WORD BAD',w);continue
