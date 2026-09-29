@@ -311,6 +311,18 @@ button[aria-expanded="true"] {
     gap: 8px
 }
 
+.wb .tiles {
+    display: flex;
+    flex-wrap: nowrap;
+    width: 100%
+}
+
+.wb .tiles .tile {
+    flex: 0 1 62px;
+    min-width: 0;
+    padding: 8px 4px
+}
+
 .wb.done .tile {
     background: var(--c4)
 }

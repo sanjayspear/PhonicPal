@@ -34,9 +34,9 @@ function phCard(x) {
   b.onclick = async () => {
     phStatus('Playing sound and example words…');
     try {
-      if (x.custom) { await Speech.say(x.fb, .7); for (const w of x.ex) await Speech.say(w, .7, true) }
-      else { await Speech.clip('s_' + x.k, x.fb); for (const w of x.ex) await Speech.clip('w_' + w, w, true) }
-      phStatus('Sound practice finished. Choose another card when ready.')
+      const first = x.custom ? Speech.say(x.fb, .7) : Speech.clip('s_' + x.k, x.fb), ep = Speech.epoch(); await first;
+      for (const w of x.ex) { if (Speech.epoch() !== ep) return; await (x.custom ? Speech.say(w, .7, true) : Speech.clip('w_' + w, w, true)) }
+      if (Speech.epoch() === ep) phStatus('Sound practice finished. Choose another card when ready.')
     } catch (e) { phStatus('Sound could not play. Check your voice settings and try again.') }
   }; return b
 }
@@ -58,13 +58,19 @@ function renderPh(i) {
   else if (items) { g = h('div', 'grid'); items.forEach(x => g.append(phCard(x))); customFor(i).forEach(c => g.append(withDel(i, customItem(i, c)))) }
   else {
     g = h('div', 'grid g2');[...WB.map(w => ({ s: w })), ...customFor(7)].forEach(cw => {
-      const w = cw.s, toks = w.split('-'), c = h('div', 'card wb'); toks.forEach(t => c.append(h('span', 'tile', t)));
+      /* tiles sit in their own no-wrap row so the word always reads left to right */
+      const w = cw.s, toks = w.split('-'), c = h('div', 'card wb'), row = h('span', 'tiles'); toks.forEach(t => row.append(h('span', 'tile', t))); c.append(row);
       const b = h('button', 'btn g', '▶ Blend'); b.title = 'Hear each sound, then hear the whole word'; b.onclick = async () => {
-        Speech.stop(); phStatus('Blending sounds…'); const t = $$('.tile', c);
+        phStatus('Blending sounds…'); const t = $$('.tile', c), reset = () => { c.classList.remove('done'); t.forEach(x => x.classList.remove('on')) };
         try {
-          for (let k = 0; k < toks.length; k++) { t[k].classList.add('on'); await Speech.clip('s_' + (SND[toks[k]] || toks[k]), toks[k], k > 0); t[k].classList.remove('on') }
-          c.classList.add('done'); await Speech.clip('w_' + toks.join(''), toks.join(''), true); c.classList.remove('done'); phStatus('Word blended. Choose another word when ready.')
-        } catch (e) { c.classList.remove('done'); t.forEach(x => x.classList.remove('on')); phStatus('Blending could not play. Check your voice settings and try again.') }
+          let ep;
+          for (let k = 0; k < toks.length; k++) {
+            if (k && Speech.epoch() !== ep) return reset();
+            t[k].classList.add('on'); const p = Speech.clip('s_' + (SND[toks[k]] || toks[k]), toks[k], k > 0); if (!k) ep = Speech.epoch(); await p; t[k].classList.remove('on')
+          }
+          if (Speech.epoch() !== ep) return reset();
+          c.classList.add('done'); await Speech.clip('w_' + toks.join(''), toks.join(''), true); reset(); if (Speech.epoch() === ep) phStatus('Word blended. Choose another word when ready.')
+        } catch (e) { reset(); phStatus('Blending could not play. Check your voice settings and try again.') }
       }; c.append(b); g.append(cw.id ? wrapDel(7, cw.id, c) : c)
     })
   }

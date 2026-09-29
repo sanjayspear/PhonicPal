@@ -23,7 +23,7 @@
                 title="Choose a speaker"></select><button id="vpreview" class="btn p vaction" type="button"
                 title="Play a short sample of the active voice">▶ Preview
                 voice</button><button id="vinstall" class="btn g vaction" type="button"
-                title="Download and activate the selected Natural Voice" hidden>Download &amp; Use
+                title="Download and activate the selected Natural Voice" hidden>Download &amp; Activate
                 Voice</button><span id="vstat" class="mut" role="status"></span></div>
     </header>
     <main>
@@ -153,7 +153,7 @@
                             <strong>Stop</strong> to end and reset the current reading session.
                         </li>
                         <li>Choose a voice in the header. Browser voice works without downloading a model; a Natural
-                            Voice is downloaded only after you choose <strong>Download &amp; Use Voice</strong>.</li>
+                            Voice is downloaded only after you choose <strong>Download &amp; Activate Voice</strong>.</li>
                         <li>Open <strong>Help</strong> any time to review these steps or restart the welcome tour.</li>
                     </ol>
                 </details>
@@ -165,11 +165,12 @@
                     <p><strong>Read It to Me</strong> starts the currently open book page. The <strong>Pause</strong>
                         button changes to <strong>Resume</strong> when paused; it holds the current speech position and
                         continues there when tapped again. <strong>Stop</strong> ends
-                        speech and resets to the beginning. <strong>Clear Text</strong> closes the current reading
+                        speech and goes back to the start of the current page. <strong>Clear Text</strong> closes the current reading
                         content. Use <strong>Slow</strong>, <strong>Normal</strong>, or <strong>Fast</strong> to change
                         the reading speed.</p>
                     <p>While reading, the current word is highlighted. Select a highlighted or other word in the reading
-                        view to open its dictionary entry.</p>
+                        view to open its dictionary entry; reading pauses, and <strong>Resume</strong> continues from the
+                        word where it stopped. Double-tap a word to make it the new starting point.</p>
                 </details>
                 <details>
                     <summary>Voice settings</summary>
@@ -179,12 +180,12 @@
                         <li><strong>Natural Voices:</strong> Kokoro and Piper are listed when the browser and secure
                             hosting support them. Select an engine and voice. Choose <strong>Preview voice</strong> to
                             hear a sample; if its model is missing, PhonicsPal asks before downloading it. Choose
-                            <strong>Download &amp; Use Voice</strong> to download and activate it for regular reading.
+                            <strong>Download &amp; Activate Voice</strong> to download and activate it for regular reading.
                             Downloads can be large and always require your explicit action.
                         </li>
                         <li><strong>Preview voice:</strong> plays a short sample using the active voice. For a Natural
                             Voice that is not downloaded yet, PhonicsPal asks before downloading the model for the
-                            sample. Previewing does not switch your regular reading voice; choose Download &amp; Use
+                            sample. Previewing does not switch your regular reading voice; choose Download &amp; Activate
                             Voice separately to activate it.</li>
                         <li>The header status tells you whether the browser voice is active, a voice is downloading, or
                             a Natural Voice is ready. If a Natural Voice is unavailable, reading falls back to the
@@ -221,9 +222,9 @@
                             or activating that Natural Voice.</li>
                         <li><strong>Preview voice:</strong> plays a short sample of the selected voice. If its Natural
                             Voice model is not downloaded, PhonicsPal asks before downloading it. After the sample, the
-                            current reading voice stays selected; choose Download &amp; Use Voice separately to switch.
+                            current reading voice stays selected; choose Download &amp; Activate Voice separately to switch.
                         </li>
-                        <li><strong>Download &amp; Use Voice / Load &amp; Use Saved Voice:</strong> explicitly loads the
+                        <li><strong>Download &amp; Activate Voice / Activate Saved Voice:</strong> explicitly loads the
                             selected Natural Voice, shows download progress, and activates it for reading. If loading
                             fails, Browser voice remains available.</li>
                     </ul>
@@ -259,7 +260,8 @@
                         <li><strong>Slow / Normal / Fast:</strong> selects the speech speed.</li>
                         <li><strong>Back / Next:</strong> moves between pages of a multi-page book and stops the current
                             reading session.</li>
-                        <li><strong>Select a word:</strong> opens its dictionary entry. <strong>Hear the word
+                        <li><strong>Select a word:</strong> opens its dictionary entry and pauses reading. Double-tap a word to start reading from
+                            it. <strong>Hear the word
                                 (🔊)</strong> plays the word aloud.</li>
                         <li><strong>Try again:</strong> retries an online lookup that failed or could not reach the
                             dictionary.</li>
@@ -302,9 +304,9 @@
                             is on, and try clicking a sound again. Some browsers require a user tap before audio can
                             play.</li>
                         <li><strong>Natural Voice unavailable:</strong> use Browser voice, check your internet
-                            connection, then select the Natural Voice and choose Download &amp; Use Voice again.</li>
-                        <li><strong>Reading does not start:</strong> add text first, check that it is not empty, and
-                            move the cursor before the end of the text. For a book, choose Open &amp; Read Aloud.</li>
+                            connection, then select the Natural Voice and choose Download &amp; Activate Voice again.</li>
+                        <li><strong>Reading does not start:</strong> add text first and check that it is not empty.
+                            If the cursor is at the very end, reading starts from the top. For a book, choose Open &amp; Read Aloud.</li>
                         <li><strong>Book does not open:</strong> use a readable PDF, TXT, or EPUB under 35 MB. Scanned,
                             protected, or image-only PDFs may not contain extractable text.</li>
                         <li><strong>Translation:</strong> translation is not available in this version.</li>
