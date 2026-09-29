@@ -98,8 +98,10 @@ const Speech = (() => {
     if (e) e.disabled = loading;
     if (install) {
       install.hidden = selectedEngine === 'browser';
-      install.disabled = loading;
-      if (selectedEngine !== 'browser') install.textContent = isInstalled(selectedEngine) ? 'Load & Use Saved Voice' : 'Download & Use Voice';
+      install.disabled = loading || (selectedEngine !== 'browser' && mode === selectedEngine && st[selectedEngine] === 'ready');
+      if (selectedEngine !== 'browser') {
+        install.textContent = mode === selectedEngine && st[selectedEngine] === 'ready' ? 'Voice Active' : isInstalled(selectedEngine) ? 'Load & Use Saved Voice' : 'Download & Use Voice';
+      }
     }
     if (preview) {
       preview.disabled = loading;
@@ -171,7 +173,10 @@ const Speech = (() => {
   const say = (t, r = .8, keep) => queue(keep, g => play(prepare(t, r), {}, g));
   /* pre-recorded phonics audio (assets/audio/<id>.mp3, or window.AUDIO_MAP in the single-file preview); falls back to the browser voice */
   const urlOf = id => (window.AUDIO_MAP && window.AUDIO_MAP[id]) || 'assets/audio/' + id + '.mp3';
-  const clip = (id, fb, keep) => queue(keep, g => play({ text: '', fb, rate: .7, url: urlOf(id) }, {}, g));
+  const clip = (id, fb, keep) => queue(keep, g => {
+    if (natural()) return play(prepare(fb || id.replace(/^(s_|w_)/, ''), .7), {}, g);
+    return play({ text: '', fb, rate: .7, url: urlOf(id) }, {}, g);
+  });
   Object.assign(api, {
     load, natural, prepare, play, stop, say, clip, preview, ENGINES,
     pause() { paused = true; if (usingA) A.pause(); else if (pauseCurrent) pauseCurrent(); else if (TTS) speechSynthesis.pause() },
@@ -191,11 +196,15 @@ const Speech = (() => {
       v.onchange = () => {
         if (selectedEngine !== 'browser') {
           LS.set('pp_voice_' + selectedEngine, v.value);
-          if (selectedEngine === 'piper') { st.piper = 'idle'; delete ENGINES.piper.lib; clearInstalled('piper') }
-          mode = 'browser'; document.dispatchEvent(new Event('speechinterrupt')); stop();
+          if (selectedEngine === 'piper') {
+            st.piper = 'idle'; delete ENGINES.piper.lib; clearInstalled('piper'); mode = 'browser';
+            document.dispatchEvent(new Event('speechinterrupt')); stop();
+          } else if (st[selectedEngine] === 'ready' && mode === selectedEngine) {
+            document.dispatchEvent(new Event('speechinterrupt')); stop(); mode = selectedEngine;
+          } else mode = 'browser';
         } else LS.set('pp_bvoice', v.value);
         syncVoiceControls();
-        status(selectedEngine === 'browser' ? 'Using ' + v.value : 'Browser voice active. Choose Download & Use to activate ' + voiceName(selectedEngine) + '.');
+        status(selectedEngine === 'browser' ? 'Using ' + v.value : mode === selectedEngine ? 'Using ' + voiceName(selectedEngine) + ' ✓' : 'Browser voice active. Choose Download & Use to activate ' + voiceName(selectedEngine) + '.');
       };
       const install = $('#vinstall');
       if (install) install.onclick = async () => {
