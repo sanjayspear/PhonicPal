@@ -35,7 +35,7 @@ const Speech = (() => {
   const markInstalled = id => LS.set('pp_installed_engines', [...new Set([...installed(), id])]);
   let gen = 0, chain = Promise.resolve(), cur = null, q = Promise.resolve(), fails = 0, usingA = false;
   let paused = false, loadPromises = {}, pauseCurrent = null, resumeCurrent = null; const pauseWaiters = [];
-  const A = new Audio(), cache = new Map();
+  const A = new Audio(), cache = new Map(), HOLD_TTS = !/Android/i.test(navigator.userAgent);
   const status = t => { const e = $('#vstat'); if (e) e.textContent = t }, ready = () => status(mode !== 'browser' && st[mode] === 'ready' ? 'Natural voice ready ✓' : 'Browser voice active');
   const natural = () => mode !== 'browser' && st[mode] === 'ready' && fails < 3;
   const waitPlaying = async g => { while (paused && g === gen) await new Promise(r => pauseWaiters.push(r)); return g === gen };
@@ -190,7 +190,9 @@ const Speech = (() => {
     load, natural, prepare, play, stop, say, clip, preview, ENGINES,
     /* changes on every stop/interrupt: a multi-step sequence (card, blend) checks it to know it was cut off */
     epoch: () => gen,
-    pause() { paused = true; if (usingA) A.pause(); else if (pauseCurrent) pauseCurrent(); else if (TTS) speechSynthesis.pause() },
+    /* true = held in place; false = this browser can't hold speech (Chrome on Android ignores speechSynthesis.pause),
+       so the caller should stop and later restart from its own position */
+    pause() { paused = true; if (usingA) { A.pause(); return true } if (!HOLD_TTS) return false; if (pauseCurrent) pauseCurrent(); else if (TTS) speechSynthesis.pause(); return true },
     resume() { paused = false; releasePaused(); if (usingA) A.play(); else if (resumeCurrent) resumeCurrent(); else if (TTS) speechSynthesis.resume() },
     init() {
       const e = $('#veng'), v = $('#vvoice'); e.replaceChildren();

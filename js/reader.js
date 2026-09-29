@@ -76,7 +76,8 @@ function Reader(root, input, name) {
     }
     /* Stop: end speech and go back to the start of the current page (a book keeps its page) */
     const resetSession = () => { const active = state === 'READING' || state === 'PAUSED'; gen++; broken = false; setState('STOPPED'); if (active) stopSpeech(); lastOff = 0; chunks = []; pre = []; clear(); if (pages.length && view.hidden === false) render(); setState('IDLE', 'Reading stopped. Ready when you are.') };
-    const pause = () => { if (state !== 'READING') return; Speech.pause(); setState('PAUSED') };
+    /* if the voice can't hold its place (browser voice on Android), stop now and let Resume restart from the current word */
+    const pause = () => { if (state !== 'READING') return; if (!Speech.pause()) { gen++; stopSpeech(); broken = true } setState('PAUSED') };
     const resume = () => { if (state !== 'PAUSED') return; if (broken) return play(lastOff); Speech.resume(); setState('READING') };
     /* another sound (word lookup, phonics, voice preview, the other reader) took the speech engine: hold the place */
     const interrupt = () => { if (quiet || (state !== 'READING' && state !== 'PAUSED')) return; gen++; broken = true; setState('PAUSED', 'Paused so another sound could play. Choose Resume to continue.') };
