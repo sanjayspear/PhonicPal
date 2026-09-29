@@ -1,57 +1,346 @@
 <!DOCTYPE html>
-<html lang="en"><head><meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>PhonicsPal</title>
-<link rel="stylesheet" href="css/styles.css">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-</head><body>
-<header><b>🔤 PhonicsPal</b><nav id="nav">
-<button data-go="home">Home</button><button data-go="phonics">Phonics</button><button data-go="read">Read With Me</button><button data-go="books">My Books</button><button data-go="vocab">My Vocabulary</button></nav><div class="vbox"><select id="veng" aria-label="Voice engine"></select><select id="vvoice" aria-label="Voice"></select><span id="vstat" class="mut" role="status"></span></div></header>
-<main>
-<p id="warn" hidden class="card">Your browser can't speak text aloud. Please try Chrome, Edge or Safari.</p>
+<html lang="en">
 
-<section id="home"><div class="hero"><h1>Learn to read the fun way!</h1>
-<p class="mut">Sounds → Blending → Words → Sentences → Books</p>
-<button class="btn" data-go="phonics">Start Learning</button></div>
-<div class="grid g2">
-<button class="card" data-go="phonics"><h3>🔊 Phonics</h3><p class="mut">Hear vowels, consonants and blends</p></button>
-<button class="card" data-go="read"><h3>📖 Read With Me</h3><p class="mut">Paste text and listen along</p></button>
-<button class="card" data-go="books"><h3>📚 My Books</h3><p class="mut">Upload a PDF, TXT or EPUB</p></button>
-<button class="card" data-go="vocab"><h3>⭐ My Vocabulary</h3><p class="mut">Save and practice new words</p></button></div>
-<div class="card"><span class="mut">Word of the day</span><h2 id="wod"></h2><p id="wodm"></p></div></section>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <title>PhonicsPal</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+</head>
 
-<section id="phonics" hidden><h1>Phonics</h1>
-<div class="ph-tools"><button class="btn g" id="addCustom">＋ Add Custom Blend</button></div>
-<div class="card cform" id="cform" hidden><h3>Add your own card</h3>
-<label>Category<select id="cf-cat"></select></label>
-<label><span id="cf-lbl"></span><input id="cf-blend" maxlength="30" autocomplete="off"></label>
-<label id="cf-exrow">Example word<input id="cf-ex" maxlength="20" autocomplete="off" placeholder="e.g. blue"></label>
-<div class="row"><button class="btn g" id="cf-save" type="button">Save Card</button><button class="btn s" id="cf-cancel" type="button">Close</button><span id="cf-msg" class="mut" role="status"></span></div></div><div class="tabs" id="ptabs"></div><p class="mut" id="pintro"></p><div id="pbody"></div></section>
+<body>
+    <header><b>🔤 PhonicsPal</b>
+        <nav id="nav">
+            <button data-go="home">Home</button><button data-go="phonics">Phonics</button><button data-go="read">Read
+                With Me</button><button data-go="books">My Books</button><button data-go="vocab">My
+                Vocabulary</button><button data-go="help" aria-label="Help and user guide"
+                title="Open the Help and User Guide">? Help</button>
+        </nav>
+        <div class="vbox"><select id="veng" aria-label="Voice engine"
+                title="Choose Browser voice or a Natural Voice"></select><select id="vvoice" aria-label="Voice"
+                title="Choose a speaker"></select><button id="vpreview" class="btn p vaction" type="button"
+                title="Play a short sample of the active voice">▶ Preview
+                voice</button><button id="vinstall" class="btn g vaction" type="button"
+                title="Download and activate the selected Natural Voice" hidden>Download &amp; Use
+                Voice</button><span id="vstat" class="mut" role="status"></span></div>
+    </header>
+    <main>
+        <p id="warn" hidden class="card">Your browser can't speak text aloud. Please try Chrome, Edge or Safari.</p>
 
-<section id="read" hidden><h1>Read With Me</h1><p class="mut">Paste or type up to 10,000 words, then press Read It to Me. Tap any word to learn it.</p><div id="rw"></div></section>
+        <section id="home">
+            <div class="hero">
+                <h1>Learn to read the fun way!</h1>
+                <p class="mut">Sounds → Blending → Words → Sentences → Books</p>
+                <button class="btn" data-go="phonics" title="Open phonics sound practice">Start Learning</button>
+            </div>
+            <div class="grid g2">
+                <button class="card" data-go="phonics">
+                    <h3>🔊 Phonics</h3>
+                    <p class="mut">Hear vowels, consonants and blends</p>
+                </button>
+                <button class="card" data-go="read">
+                    <h3>📖 Read With Me</h3>
+                    <p class="mut">Paste text and listen along</p>
+                </button>
+                <button class="card" data-go="books">
+                    <h3>📚 My Books</h3>
+                    <p class="mut">Upload a PDF, TXT or EPUB</p>
+                </button>
+                <button class="card" data-go="vocab">
+                    <h3>⭐ My Vocabulary</h3>
+                    <p class="mut">Save and practice new words</p>
+                </button>
+            </div>
+            <div class="card"><span class="mut">Word of the day</span>
+                <h2 id="wod"></h2>
+                <p id="wodm"></p>
+            </div>
+        </section>
 
-<section id="books" hidden><h1>My Books</h1>
-<label class="drop"><b>Choose a book to upload</b><br><span class="mut">PDF, TXT or EPUB • up to 35 MB</span>
-<input type="file" id="file" accept=".pdf,.txt,.epub" hidden></label>
-<div class="card res"><h3>📚 Need something to read?</h3>
-<p class="mut">Find free children's stories, fairy tales and fables that are in the public domain. Download a book as <b>Plain Text</b> or <b>EPUB</b>, then upload it above or paste it into Read With Me.</p>
-<a class="btn gut" href="https://www.gutenberg.org/" target="_blank" rel="noopener noreferrer">Browse Project Gutenberg ↗</a></div>
-<p id="ust" class="mut" role="status"></p><div class="grid g2" id="blist"></div>
-<div id="bview" hidden><h2 id="btitle"></h2><div id="bk"></div></div></section>
+        <section id="phonics" hidden>
+            <h1>Phonics</h1>
+            <div class="ph-tools"><button class="btn g" id="addCustom" aria-controls="cform" aria-expanded="false"
+                    title="Create a personal phonics practice card">＋
+                    Add Custom Blend</button></div>
+            <div class="card cform" id="cform" hidden>
+                <h3>Add your own card</h3>
+                <label>Category<select id="cf-cat"></select></label>
+                <label><span id="cf-lbl"></span><input id="cf-blend" maxlength="30" autocomplete="off"></label>
+                <label id="cf-exrow">Example word<input id="cf-ex" maxlength="20" autocomplete="off"
+                        placeholder="e.g. blue"></label>
+                <div class="row"><button class="btn g" id="cf-save" type="button"
+                        title="Check and save this phonics card">Save Card</button><button class="btn s" id="cf-cancel"
+                        type="button" title="Close without saving">Close</button><span id="cf-msg" class="mut"
+                        role="status"></span></div>
+            </div>
+            <div class="tabs" id="ptabs"></div>
+            <p class="mut" id="pintro"></p>
+            <p class="mut action-status" id="phstatus" role="status" aria-live="polite">Ready to play a sound.</p>
+            <div id="pbody"></div>
+        </section>
 
-<section id="vocab" hidden><h1>My Vocabulary</h1><div class="tabs" id="vtabs"></div><div class="grid g2" id="vlist"></div></section>
-</main>
-<script src="js/core.js"></script>
-<script src="js/env.js"></script>
-<script src="js/speech.js"></script>
-<script src="js/dictionary.js"></script>
-<script src="js/reader.js"></script>
-<script src="js/curriculum.js"></script>
-<script src="js/custom-phonics.js"></script>
-<script src="js/phonics.js"></script>
-<script src="js/books.js"></script>
-<script src="js/vocabulary.js"></script>
-<script src="js/home.js"></script>
-<script>Speech.init();</script>
-</body></html>
+        <section id="read" hidden>
+            <h1>Read With Me</h1>
+            <p class="mut">Paste or type up to 10,000 words, place the cursor where you want to begin, then choose Read
+                From Here. Tap any word to learn it.</p>
+            <div id="rw"></div>
+        </section>
+
+        <section id="books" hidden>
+            <h1>My Books</h1>
+            <label class="drop" title="Choose a PDF, TXT, or EPUB file up to 35 MB"><b>Choose a book to
+                    upload</b><br><span class="mut">PDF, TXT or EPUB • up to 35
+                    MB</span>
+                <input type="file" id="file" accept=".pdf,.txt,.epub" hidden></label>
+            <div class="card res">
+                <h3>📚 Need something to read?</h3>
+                <p class="mut">Find free children's stories, fairy tales and fables that are in the public domain.
+                    Download a book as <b>Plain Text</b> or <b>EPUB</b>, then upload it above or paste it into Read With
+                    Me.</p>
+                <a class="btn gut" href="https://www.gutenberg.org/" target="_blank" rel="noopener noreferrer">Browse
+                    Project Gutenberg ↗</a>
+            </div>
+            <p id="ust" class="mut" role="status"></p>
+            <div class="grid g2" id="blist"></div>
+            <div id="bview" hidden>
+                <h2 id="btitle"></h2>
+                <div id="bk"></div>
+            </div>
+        </section>
+
+        <section id="vocab" hidden>
+            <h1>My Vocabulary</h1>
+            <div class="tabs" id="vtabs"></div>
+            <div class="grid g2" id="vlist"></div>
+        </section>
+
+        <section id="help" hidden>
+            <h1>Help &amp; User Guide</h1>
+            <p class="help-lead">Simple steps for children, families, and teachers. Choose a section below, or take the
+                short welcome tour.</p>
+            <div class="row help-actions">
+                <button class="btn" id="restartTour" type="button">▶ Take the welcome tour</button>
+            </div>
+            <div class="help-sections">
+                <details open>
+                    <summary>About PhonicsPal</summary>
+                    <p><strong>PhonicsPal</strong> is an English reading and phonics practice app for children, parents,
+                        and teachers. It helps learners listen to speech sounds, blend sounds into words, read text
+                        aloud, and explore new vocabulary.</p>
+                    <ul class="guide-list">
+                        <li>Practice short and long vowels, consonants, blends, digraphs, r-controlled vowels, and
+                            diphthongs.</li>
+                        <li>Read typed text or uploaded PDF, TXT, and EPUB books aloud, with word highlighting and
+                            dictionary lookup.</li>
+                        <li>Save useful words, review them in a vocabulary list, and play a short word quiz.</li>
+                        <li>Add your own phonics cards for sounds or words you want to practice.</li>
+                    </ul>
+                    <p>Short listening, repetition, and word practice can help children connect written letters with
+                        spoken sounds and build reading confidence alongside an adult or on their own.</p>
+                    <p><strong>Version:</strong> 0.1.0</p>
+                </details>
+                <details>
+                    <summary>Getting started</summary>
+                    <ol class="guide-list">
+                        <li>Choose <strong>Phonics</strong> to practice sounds, or open <strong>My Books</strong> to add
+                            a PDF, TXT, or EPUB. You can also paste text in <strong>Read With Me</strong>.</li>
+                        <li>In Read With Me, click in the text box and place the cursor where you want to begin.</li>
+                        <li>Choose <strong>Read From Here</strong>. Reading starts at the cursor and continues through
+                            the remaining text.</li>
+                        <li>Use <strong>Pause</strong> and <strong>Resume</strong> to control reading. Choose
+                            <strong>Stop</strong> to end and reset the current reading session.
+                        </li>
+                        <li>Choose a voice in the header. Browser voice works without downloading a model; a Natural
+                            Voice is downloaded only after you choose <strong>Download &amp; Use Voice</strong>.</li>
+                        <li>Open <strong>Help</strong> any time to review these steps or restart the welcome tour.</li>
+                    </ol>
+                </details>
+                <details>
+                    <summary>Reading controls</summary>
+                    <p><strong>Read From Here</strong> reads the text box from its current cursor position. To choose a
+                        new starting point after reading begins, choose <strong>Edit text</strong>, place the cursor,
+                        then choose Read From Here again.</p>
+                    <p><strong>Read It to Me</strong> starts the currently open book page. <strong>Pause</strong> holds
+                        the current speech position; <strong>Resume</strong> continues there; <strong>Stop</strong> ends
+                        speech and resets to the beginning. <strong>Clear Text</strong> closes the current reading
+                        content. Use <strong>Slow</strong>, <strong>Normal</strong>, or <strong>Fast</strong> to change
+                        the reading speed.</p>
+                    <p>While reading, the current word is highlighted. Select a highlighted or other word in the reading
+                        view to open its dictionary entry.</p>
+                </details>
+                <details>
+                    <summary>Voice settings</summary>
+                    <ul class="guide-list">
+                        <li><strong>Browser voice:</strong> uses a voice provided by your browser or device. It is
+                            available without installing a Natural Voice.</li>
+                        <li><strong>Natural Voices:</strong> Kokoro and Piper are listed when the browser and secure
+                            hosting support them. Select an engine and voice. Choose <strong>Preview voice</strong> to
+                            hear a sample; if its model is missing, PhonicsPal asks before downloading it. Choose
+                            <strong>Download &amp; Use Voice</strong> to download and activate it for regular reading.
+                            Downloads can be large and always require your explicit action.
+                        </li>
+                        <li><strong>Preview voice:</strong> plays a short sample using the active voice. For a Natural
+                            Voice that is not downloaded yet, PhonicsPal asks before downloading the model for the
+                            sample. Previewing does not switch your regular reading voice; choose Download &amp; Use
+                            Voice separately to activate it.</li>
+                        <li>The header status tells you whether the browser voice is active, a voice is downloading, or
+                            a Natural Voice is ready. If a Natural Voice is unavailable, reading falls back to the
+                            browser voice.</li>
+                    </ul>
+                    <p>Natural Voices need a secure web page such as HTTPS or localhost. Opening the app directly as a
+                        <code>file://</code> page limits voice options.
+                    </p>
+                </details>
+                <details>
+                    <summary>Language and translation</summary>
+                    <p>PhonicsPal currently focuses on English text, English phonics, and English dictionary lookup. It
+                        does not currently include language selection or a translate button, so it cannot translate text
+                        yet. Online dictionary lookup needs an internet connection; browser and downloaded Natural
+                        Voices can read supported English text aloud.</p>
+                </details>
+                <details>
+                    <summary>Button reference</summary>
+                    <h3>Navigation and home</h3>
+                    <ul class="guide-list">
+                        <li><strong>Home:</strong> returns to the home screen; use it to see the learning shortcuts and
+                            word of the day.</li>
+                        <li><strong>Start Learning:</strong> opens Phonics so you can begin sound practice.</li>
+                        <li><strong>Phonics, Read With Me, My Books, My Vocabulary:</strong> open the named activity;
+                            use these top-navigation buttons or the matching home shortcut.</li>
+                        <li><strong>? Help:</strong> opens this guide. Choose <strong>Take the welcome tour</strong> to
+                            go through the first-use steps again.</li>
+                    </ul>
+                    <h3>Voice controls</h3>
+                    <ul class="guide-list">
+                        <li><strong>Voice engine:</strong> chooses Browser voice, Kokoro, or Piper when available.
+                            Selecting a Natural Voice engine does not download it.</li>
+                        <li><strong>Voice:</strong> chooses a speaker in the selected engine. Use it before downloading
+                            or activating that Natural Voice.</li>
+                        <li><strong>Preview voice:</strong> plays a short sample of the selected voice. If its Natural
+                            Voice model is not downloaded, PhonicsPal asks before downloading it. After the sample, the
+                            current reading voice stays selected; choose Download &amp; Use Voice separately to switch.
+                        </li>
+                        <li><strong>Download &amp; Use Voice / Load &amp; Use Saved Voice:</strong> explicitly loads the
+                            selected Natural Voice, shows download progress, and activates it for reading. If loading
+                            fails, Browser voice remains available.</li>
+                    </ul>
+                    <h3>Phonics</h3>
+                    <ul class="guide-list">
+                        <li><strong>Vowel Sounds, Consonant Sounds, Vowel Blending, Consonant Blending, Consonant
+                                Digraphs, R-Controlled Vowels, Diphthongs, Word Blending Practice:</strong> switch to
+                            that practice group.</li>
+                        <li><strong>Sound or word card:</strong> plays the sound and its example word or words; use a
+                            card to listen and repeat.</li>
+                        <li><strong>Read sentence aloud (🔊):</strong> reads a practice sentence.</li>
+                        <li><strong>Blend:</strong> plays the sounds in order, then the completed word.</li>
+                        <li><strong>Add Custom Blend:</strong> opens the form for a personal practice card. Choose a
+                            category, enter a blend or a word, and add an example when requested.</li>
+                        <li><strong>Save Card:</strong> checks and saves the custom card, then shows it in the selected
+                            group.</li>
+                        <li><strong>Close:</strong> closes the custom-card form without saving.</li>
+                        <li><strong>Remove custom card (✕):</strong> deletes that personal card from the selected group.
+                        </li>
+                    </ul>
+                    <h3>Read With Me and dictionary</h3>
+                    <ul class="guide-list">
+                        <li><strong>Text to read:</strong> type or paste up to 10,000 words. Place the cursor before
+                            choosing Read From Here.</li>
+                        <li><strong>Read From Here:</strong> begins at the text cursor and reads onward.</li>
+                        <li><strong>Pause / Resume / Stop:</strong> pause at the current position, continue from there,
+                            or stop and reset the active session.</li>
+                        <li><strong>Clear Text:</strong> clears the current text and closes the open book reading view.
+                        </li>
+                        <li><strong>Edit text:</strong> returns to the text box so you can change the text or choose
+                            another cursor position.</li>
+                        <li><strong>Slow / Normal / Fast:</strong> selects the speech speed.</li>
+                        <li><strong>Back / Next:</strong> moves between pages of a multi-page book and stops the current
+                            reading session.</li>
+                        <li><strong>Select a word:</strong> opens its dictionary entry. <strong>Hear the word
+                                (🔊)</strong> plays the word aloud.</li>
+                        <li><strong>Try again:</strong> retries an online lookup that failed or could not reach the
+                            dictionary.</li>
+                        <li><strong>Save Word:</strong> adds the displayed word to My Vocabulary. The button changes to
+                            <strong>Saved</strong> afterward.
+                        </li>
+                    </ul>
+                    <h3>My Books</h3>
+                    <ul class="guide-list">
+                        <li><strong>Choose a book to upload:</strong> opens the file picker for PDF, TXT, or EPUB files
+                            up to 35 MB. The status line reports reading, progress, success, or a problem.</li>
+                        <li><strong>Browse Project Gutenberg:</strong> opens its website in a new tab to find
+                            public-domain reading material.</li>
+                        <li><strong>Open &amp; Read Aloud:</strong> opens the selected saved book and its reader
+                            controls.</li>
+                        <li><strong>Delete:</strong> removes the selected book from this browser’s local library.</li>
+                    </ul>
+                    <h3>My Vocabulary</h3>
+                    <ul class="guide-list">
+                        <li><strong>All Words / Saved by Me / Starter List:</strong> filter the vocabulary cards by that
+                            group.</li>
+                        <li><strong>Practice:</strong> starts a short meaning-to-word quiz. Choose an answer button;
+                            feedback tells you whether to try again or continue.</li>
+                        <li><strong>Hear [word] (🔊):</strong> plays that word aloud.</li>
+                        <li><strong>Remove:</strong> removes a saved word from My Vocabulary.</li>
+                        <li><strong>Next word:</strong> starts another quiz question.</li>
+                    </ul>
+                    <h3>Welcome tour</h3>
+                    <ul class="guide-list">
+                        <li><strong>Continue / Finish:</strong> moves to the next welcome step or closes the tour after
+                            its final step.</li>
+                        <li><strong>Skip tour:</strong> dismisses the tour. You can also press Escape to close it, then
+                            open it again from this Help page.</li>
+                    </ul>
+                </details>
+                <details>
+                    <summary>Troubleshooting</summary>
+                    <ul class="guide-list">
+                        <li><strong>No voice:</strong> choose Browser voice in the header, check that your device volume
+                            is on, and try clicking a sound again. Some browsers require a user tap before audio can
+                            play.</li>
+                        <li><strong>Natural Voice unavailable:</strong> use Browser voice, check your internet
+                            connection, then select the Natural Voice and choose Download &amp; Use Voice again.</li>
+                        <li><strong>Reading does not start:</strong> add text first, check that it is not empty, and
+                            move the cursor before the end of the text. For a book, choose Open &amp; Read Aloud.</li>
+                        <li><strong>Book does not open:</strong> use a readable PDF, TXT, or EPUB under 35 MB. Scanned,
+                            protected, or image-only PDFs may not contain extractable text.</li>
+                        <li><strong>Translation:</strong> translation is not available in this version.</li>
+                    </ul>
+                </details>
+                <details>
+                    <summary>About and credits</summary>
+                    <p>PhonicsPal version 0.1.0. Project copyright: Sanjay Y M and Ashok Kumar S.</p>
+                    <p>Voice and file features use Kokoro/Kokoro-JS, Piper, PDF.js, and JSZip. English word lookup can
+                        use Free Dictionary, Wiktionary, and Datamuse services. Project Gutenberg is linked as a source
+                        for public-domain books. Third-party services and libraries keep their own terms and licenses.
+                    </p>
+                </details>
+            </div>
+        </section>
+    </main>
+    <dialog class="tour-dialog" id="welcomeTour" aria-labelledby="tourTitle" aria-describedby="tourText">
+        <p class="tour-progress" id="tourProgress"></p>
+        <h2 id="tourTitle">Welcome to PhonicsPal!</h2>
+        <p id="tourText"></p>
+        <div class="row tour-actions">
+            <button class="btn s" id="skipTour" type="button">Skip tour</button>
+            <button class="btn" id="nextTour" type="button">Continue</button>
+        </div>
+    </dialog>
+    <script src="js/core.js"></script>
+    <script src="js/env.js"></script>
+    <script src="js/speech.js"></script>
+    <script src="js/dictionary.js"></script>
+    <script src="js/reader.js"></script>
+    <script src="js/curriculum.js"></script>
+    <script src="js/custom-phonics.js"></script>
+    <script src="js/phonics.js"></script>
+    <script src="js/books.js"></script>
+    <script src="js/vocabulary.js"></script>
+    <script src="js/home.js"></script>
+    <script src="js/guide.js"></script>
+    <script>Speech.init();</script>
+</body>
+
+</html>
