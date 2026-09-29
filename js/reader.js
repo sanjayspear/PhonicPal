@@ -69,9 +69,10 @@ function Reader(root, input, name) {
         if (g !== gen) return;
         if (state !== 'READING') return;
         if (i >= chunks.length) { if (pi < pages.length - 1) { pi++; render(); return play() } setState('IDLE', 'Finished reading.'); return clear() }
-        const c = chunks[i], r = +rate.value; pre[i] = pre[i] || Speech.prepare(c.t, r);
+        /* re-prepare sentences made at an older speed, so a Slow/Normal/Fast change applies from the next sentence */
+        const c = chunks[i], r = +rate.value, fresh = j => pre[j] && pre[j].rate === r; if (!fresh(i)) pre[i] = Speech.prepare(c.t, r);
         /* synthesize a few sentences ahead so the next clip is ready even when a screen-off phone slows the page down */
-        for (let j = i + 1; j <= i + 3 && j < chunks.length; j++) if (!pre[j]) pre[j] = Speech.prepare(chunks[j].t, r);
+        for (let j = i + 1; j <= i + 3 && j < chunks.length; j++) if (!fresh(j)) pre[j] = Speech.prepare(chunks[j].t, r);
         Speech.play(pre[i], { start: () => g === gen && hl(c.o), prog: k => g === gen && hl(c.o + k) }).then(() => run(i + 1, g)).catch(e => { if (g === gen) { cnt.textContent = 'Speech stopped: ' + String(e.message || e); setState('IDLE', 'Reading could not continue.') } })
     }
     /* Stop: end speech and go back to the start of the current page (a book keeps its page) */

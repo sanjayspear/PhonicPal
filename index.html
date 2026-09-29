@@ -24,7 +24,9 @@
                 title="Play a short sample of the active voice">▶ Preview
                 voice</button><button id="vinstall" class="btn g vaction" type="button"
                 title="Download and activate the selected Natural Voice" hidden>Download &amp; Activate
-                Voice</button><span id="vstat" class="mut" role="status"></span></div>
+                Voice</button><button id="vmanage" class="btn s vaction" type="button"
+                title="See and delete Natural Voices saved on this device" aria-haspopup="dialog" hidden>🗑 Manage
+                voices</button><span id="vstat" class="mut" role="status"></span></div>
     </header>
     <main>
         <p id="warn" hidden class="card">Your browser can't speak text aloud. Please try Chrome, Edge or Safari.</p>
@@ -187,6 +189,8 @@
                             Voice that is not downloaded yet, PhonicsPal asks before downloading the model for the
                             sample. Previewing does not switch your regular reading voice; choose Download &amp; Activate
                             Voice separately to activate it.</li>
+                        <li><strong>Saving space:</strong> choose <strong>🗑 Manage voices</strong> in the header to
+                            see downloaded Natural Voices and delete the ones you don't need.</li>
                         <li>The header status tells you whether the browser voice is active, a voice is downloading, or
                             a Natural Voice is ready. If a Natural Voice is unavailable, reading falls back to the
                             browser voice.</li>
@@ -226,7 +230,11 @@
                         </li>
                         <li><strong>Download &amp; Activate Voice / Activate Saved Voice:</strong> explicitly loads the
                             selected Natural Voice, shows download progress, and activates it for reading. If loading
-                            fails, Browser voice remains available.</li>
+                            fails, Browser voice remains available. Each Piper speaker is a separate download; Kokoro
+                            downloads once for all its speakers.</li>
+                        <li><strong>Manage voices (🗑):</strong> lists the Natural Voices saved on this device with
+                            their sizes. Choose <strong>Delete</strong> to free up space. Deleting the voice in use
+                            switches reading to the Browser voice; you can download any voice again later.</li>
                     </ul>
                     <h3>Phonics</h3>
                     <ul class="guide-list">
@@ -293,6 +301,8 @@
                     <ul class="guide-list">
                         <li><strong>Continue / Finish:</strong> moves to the next welcome step or closes the tour after
                             its final step.</li>
+                        <li><strong>Read aloud / Mute:</strong> reads each tour step aloud, or stops reading. When the
+                            tour is started from this Help page it is read aloud automatically.</li>
                         <li><strong>Skip tour:</strong> dismisses the tour. You can also press Escape to close it, then
                             open it again from this Help page.</li>
                     </ul>
@@ -333,9 +343,19 @@
         <h2 id="tourTitle">Welcome to PhonicsPal!</h2>
         <p id="tourText"></p>
         <div class="row tour-actions">
+            <button class="btn t" id="tourVoice" type="button" aria-pressed="false"
+                title="Read each tour step aloud">🔊 Read aloud</button>
             <button class="btn s" id="skipTour" type="button">Skip tour</button>
             <button class="btn" id="nextTour" type="button">Continue</button>
         </div>
+    </dialog>
+    <dialog class="tour-dialog" id="voiceMgr" aria-labelledby="vmTitle">
+        <h2 id="vmTitle">Downloaded voices</h2>
+        <p class="mut">Natural Voices are saved on this device so they start quickly. Delete any you no longer need to
+            free up space; you can download them again later.</p>
+        <div id="vmList" role="list"></div>
+        <p id="vmStatus" class="mut" role="status" aria-live="polite"></p>
+        <div class="row tour-actions"><button class="btn" id="vmClose" type="button">Close</button></div>
     </dialog>
     <script src="js/core.js"></script>
     <script src="js/env.js"></script>

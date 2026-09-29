@@ -20,9 +20,29 @@ const Speech = (() => {
     },
     piper: {
       name: 'Natural: Piper (lighter, ~60 MB)', dv: 'en_US-hfc_female-medium',
+      fixedSpeed: true,   /* the library always speaks at the model's own speed: playback speed is applied instead (see prepare) */
       voices: [['en_US-hfc_female-medium', 'Female (US)'], ['en_US-amy-medium', 'Amy (US woman)'], ['en_US-kristin-medium', 'Kristin (US woman)'], ['en_US-joe-medium', 'Joe (US man)'], ['en_US-john-medium', 'John (US man)']],
-      async load(p) { this.lib = await import(PIPER_LIB); await this.lib.download(LS.get('pp_voice_piper', this.dv), e => e.total && p(e.url, e.loaded, e.total)) },
-      text(t, speed, voice) { return this.lib.predict({ text: t, voiceId: voice }) }
+      /* downloads the voice only if it isn't saved yet, then loads it (lib.download would re-fetch every time) */
+      async load(p) { this.lib = this.lib || await import(PIPER_LIB); this.wasm = this.wasm || await this.wasmPaths(); await this.session(voiceOf('piper'), p) },
+      /* The CDN bundle imports onnxruntime-web 1.27 but points it at the 1.18 runtime files, which 404
+         ("no available backend found"): every sentence failed and quietly fell back to the browser voice.
+         Point it at the runtime files of the version the bundle really imports. */
+      async wasmPaths() {
+        let v = '1.27.0'; try { v = (await (await fetch(PIPER_LIB)).text()).match(/onnxruntime-web@([^/"'\s]+)\//)[1] } catch (e) { }
+        return { onnxWasm: 'https://cdn.jsdelivr.net/npm/onnxruntime-web@' + v + '/dist/', piperData: this.lib.WASM_BASE + '.data', piperWasm: this.lib.WASM_BASE + '.wasm' }
+      },
+      /* The library keeps ONE shared TtsSession: a later predict({voiceId}) only relabels it and keeps speaking with the
+         first voice it loaded. Start a fresh session whenever the voice changes so the chosen voice really plays. */
+      session(voice, p) {
+        if (this.sv !== voice) {
+          this.lib.TtsSession._instance = null; this.sv = voice;
+          this.sp = this.lib.TtsSession.create({ voiceId: voice, wasmPaths: this.wasm, progress: e => p && e.total && p(e.url, e.loaded, e.total) });
+          this.sp.catch(() => { if (this.sv === voice) this.sv = null })
+        }
+        return this.sp
+      },
+      forget() { this.sv = this.sp = null },
+      text(t, speed, voice) { return this.session(voice).then(s => s.predict(t)) }
     }
   };   /* returns a WAV Blob */
   const canNeural = ENV.FEATURES.neuralTTS;
@@ -31,8 +51,10 @@ const Speech = (() => {
   if (!canNeural) selectedEngine = 'browser';
   const st = { kokoro: 'idle', piper: 'idle' }, voiceOf = id => LS.get('pp_voice_' + id, ENGINES[id] && ENGINES[id].dv);
   const voiceName = id => ENGINES[id] && (ENGINES[id].voices.find(([key]) => key === voiceOf(id)) || [null, id])[1];
-  const installed = () => LS.get('pp_installed_engines', []), isInstalled = id => installed().includes(id);
-  const markInstalled = id => LS.set('pp_installed_engines', [...new Set([...installed(), id])]);
+  /* saved downloads: 'kokoro' (one model for all its speakers) or 'piper:<voice>' (one model per Piper voice) */
+  const keyOf = id => id === 'piper' ? 'piper:' + voiceOf('piper') : id;
+  const installed = () => LS.get('pp_installed_engines', []), isInstalled = id => installed().includes(keyOf(id));
+  const markInstalled = id => LS.set('pp_installed_engines', [...new Set([...installed(), keyOf(id)])]);
   let gen = 0, chain = Promise.resolve(), cur = null, q = Promise.resolve(), fails = 0, usingA = false;
   let paused = false, loadPromises = {}, pauseCurrent = null, resumeCurrent = null; const pauseWaiters = [];
   const A = new Audio(), cache = new Map(), HOLD_TTS = !/Android/i.test(navigator.userAgent);
@@ -73,8 +95,10 @@ const Speech = (() => {
     cache.set(key, p); p.catch(() => cache.delete(key)); if (cache.size > 80) cache.delete(cache.keys().next().value); return p
   }
   const speedOf = r => Math.min(1.4, Math.max(.6, r / .85));
-  const textClip = (t, r) => { const id = mode, v = voiceOf(id), s = speedOf(r); return synth(id + '|' + v + '|' + s + '|' + t, () => ENGINES[id].text(t, s, v)) };
-  const prepare = (text, rate = .85) => ({ text, rate, blob: natural() ? textClip(text, rate) : null });
+  /* engines that can't change speed make the same audio at any speed, so one cached clip serves Slow, Normal and Fast */
+  const textClip = (t, r) => { const id = mode, v = voiceOf(id), s = speedOf(r); return synth(id + '|' + v + '|' + (ENGINES[id].fixedSpeed ? '' : s) + '|' + t, () => ENGINES[id].text(t, s, v)) };
+  /* speed: audio playback rate (pitch kept) for fixed-speed engines; 1 when the engine or browser voice applies the speed itself */
+  const prepare = (text, rate = .85) => { const n = natural(); return { text, rate, blob: n ? textClip(text, rate) : null, speed: n && ENGINES[mode].fixedSpeed ? speedOf(rate) : 1 } };
   function stop() { gen++; paused = false; releasePaused(); if (TTS) speechSynthesis.cancel(); if (cur) { const c = cur; cur = null; c() } pauseCurrent = resumeCurrent = null }
   /* browser voices: auto-pick the most natural one installed (Edge "Natural"/Online, macOS Premium/Enhanced, Siri, Google) */
   const bvoices = () => TTS ? speechSynthesis.getVoices().filter(v => /^en([-_]|$)/i.test(v.lang)) : [];
@@ -108,12 +132,12 @@ const Speech = (() => {
       preview.title = loading ? 'The selected voice is loading.' : selectedEngine !== 'browser' && mode !== selectedEngine && st[selectedEngine] !== 'ready' ? 'Choose Preview to request the one-time voice download and hear a sample.' : 'Play a sample using the selected voice.';
     }
   }
-  const clearInstalled = id => LS.set('pp_installed_engines', installed().filter(x => x !== id));
+  const clearInstalled = id => LS.set('pp_installed_engines', installed().filter(x => x !== keyOf(id)));
   async function preview() {
     const id = selectedEngine;
     if (id !== 'browser' && mode !== id) {
       if (st[id] !== 'ready') {
-        const okToDownload = window.confirm('To hear ' + voiceName(id) + ', PhonicsPal needs to download its Natural Voice model (about ' + (id === 'kokoro' ? '90' : '60') + ' MB). Download it now to play the sample?');
+        const okToDownload = isInstalled(id) || window.confirm('To hear ' + voiceName(id) + ', PhonicsPal needs to download its Natural Voice model (about ' + (id === 'kokoro' ? '90' : '60') + ' MB). Download it now to play the sample?');
         if (!okToDownload) { status('Preview cancelled. Browser voice remains active.'); return false }
         status('Preparing voice sample…');
         if (!await load(id)) return false;
@@ -159,6 +183,8 @@ const Speech = (() => {
       const fin = () => { if (done) return; done = true; cleanup(); A.pause(); if (cur === fin) cur = null; res() };
       const bail = err => { if (done) return; done = true; cleanup(); console.warn('Audio failed', err); if (cur === fin) cur = null; res(playBrowser(clip, hk, g)) };
       cur = fin; A.onended = fin; A.onerror = bail; A.src = url;
+      /* set after src: loading a new source resets playbackRate to defaultPlaybackRate */
+      A.preservesPitch = A.webkitPreservesPitch = true; A.defaultPlaybackRate = A.playbackRate = clip.speed || 1;
       const tick = () => { if (done) return; if (A.duration && hk.prog && clip.text) hk.prog(Math.floor(A.currentTime / A.duration * clip.text.length)); raf = requestAnimationFrame(tick) };
       const p = A.play();
       if (p && p.then) p.then(() => { hk.start && hk.start(); tick() }).catch(bail); else { hk.start && hk.start(); tick() }
@@ -186,8 +212,68 @@ const Speech = (() => {
     if (natural()) return play(prepare(fb || id.replace(/^(s_|w_)/, ''), .7), {}, g);
     return play({ text: '', fb, rate: .7, url: urlOf(id) }, {}, g);
   });
+  /* ---------- Downloaded voices: find them, show them, delete them ----------
+     Piper keeps <voice>.onnx(+.json) in the origin-private folder "piper"; Kokoro (kokoro-js) keeps its model in the
+     "transformers-cache" cache and speaker files in "kokoro-voices". */
+  const KOKORO_CACHE = 'transformers-cache', KOKORO_VOICES = 'kokoro-voices', isKokoroUrl = u => /Kokoro-82M/i.test(u);
+  async function piperDir() { try { return await (await navigator.storage.getDirectory()).getDirectoryHandle('piper') } catch (e) { return null } }
+  /* -> [{key, id, voice, label, bytes}] for every saved natural voice */
+  async function savedVoices() {
+    const out = [], dir = await piperDir();
+    if (dir) try {
+      for await (const [name, fh] of dir.entries()) {
+        if (!name.endsWith('.onnx')) continue; const voice = name.slice(0, -5), known = ENGINES.piper.voices.find(([k]) => k === voice);
+        out.push({ key: 'piper:' + voice, id: 'piper', voice, label: 'Piper: ' + (known ? known[1] : voice), bytes: (await fh.getFile()).size })
+      }
+    } catch (e) { console.warn('[PhonicsPal] could not list Piper voices', e) }
+    if ('caches' in window) try {
+      let bytes = 0, model = false;
+      const add = async (c, test) => { for (const req of await c.keys()) if (test(req.url)) { if (/\.onnx/.test(req.url)) model = true; const r = await c.match(req); bytes += +(r && r.headers.get('content-length')) || 0 } };
+      if (await caches.has(KOKORO_CACHE)) await add(await caches.open(KOKORO_CACHE), isKokoroUrl);
+      if (await caches.has(KOKORO_VOICES)) await add(await caches.open(KOKORO_VOICES), () => true);
+      if (model) out.unshift({ key: 'kokoro', id: 'kokoro', label: 'Kokoro (all 6 speakers)', bytes })
+    } catch (e) { console.warn('[PhonicsPal] could not check the Kokoro voice', e) }
+    return out
+  }
+  /* storage is the truth: fixes "saved" labels after the browser clears site data or a voice is deleted */
+  async function syncSaved() { if (!canNeural) return; LS.set('pp_installed_engines', (await savedVoices()).map(x => x.key)); syncVoiceControls() }
+  async function deleteVoice(x) {
+    const inUse = mode === x.id && (x.id === 'kokoro' || voiceOf('piper') === x.voice);
+    if (inUse) { document.dispatchEvent(new Event('speechinterrupt')); stop(); mode = 'browser' }
+    if (x.id === 'piper') { if (ENGINES.piper.sv === x.voice) ENGINES.piper.forget(); if (voiceOf('piper') === x.voice) st.piper = 'idle' }
+    else { try { ENGINES.kokoro.tts.model.dispose() } catch (e) { } delete ENGINES.kokoro.tts; st.kokoro = 'idle' }
+    if (x.id === 'piper') { const dir = await piperDir(); for (const f of [x.voice + '.onnx', x.voice + '.onnx.json']) try { dir && await dir.removeEntry(f) } catch (e) { } }
+    else { const c = await caches.open(KOKORO_CACHE); for (const req of await c.keys()) if (isKokoroUrl(req.url)) await c.delete(req); await caches.delete(KOKORO_VOICES) }
+    cache.clear(); await syncSaved(); return inUse
+  }
+  const mb = n => n ? (n / 1048576).toFixed(n < 10485760 ? 1 : 0) + ' MB' : 'size unknown';
+  async function openManager() {
+    const dlg = $('#voiceMgr'), list = $('#vmList'), msg = $('#vmStatus');
+    const render = async () => {
+      list.replaceChildren(h('p', 'mut', 'Checking saved voices…'));
+      const items = await savedVoices(); list.replaceChildren();
+      if (!items.length) list.append(h('p', 'mut', 'No Natural Voices are saved on this device.'));
+      items.forEach(x => {
+        const row = h('div', 'row vm-row'), del = h('button', 'btn s', 'Delete'), loading = st[x.id] === 'loading';
+        const active = mode === x.id && (x.id === 'kokoro' || voiceOf('piper') === x.voice);
+        row.setAttribute('role', 'listitem'); del.type = 'button'; del.disabled = loading;
+        del.title = loading ? 'This voice is loading. Try again when it has finished.' : 'Delete ' + x.label + ' from this device';
+        del.setAttribute('aria-label', 'Delete ' + x.label);
+        del.onclick = async () => {
+          if (!confirm('Delete ' + x.label + ' (' + mb(x.bytes) + ') from this device?' + (active ? ' It is the voice in use, so the Browser voice will read instead.' : '') + ' You can download it again later.')) return;
+          del.disabled = true; msg.textContent = 'Deleting ' + x.label + '…';
+          const wasActive = await deleteVoice(x);
+          msg.textContent = 'Deleted ' + x.label + (x.bytes ? ', freeing about ' + mb(x.bytes) : '') + '.';
+          if (wasActive) status('Voice deleted. Browser voice is active.');
+          render()
+        };
+        row.append(h('span', 'vm-name', x.label + (active ? ' (in use)' : '')), h('span', 'mut', mb(x.bytes)), del); list.append(row)
+      })
+    };
+    msg.textContent = ''; if (!dlg.open) dlg.showModal(); await render()
+  }
   Object.assign(api, {
-    load, natural, prepare, play, stop, say, clip, preview, ENGINES,
+    load, natural, prepare, play, stop, say, clip, preview, ENGINES, savedVoices, deleteVoice, openManager,
     /* changes on every stop/interrupt: a multi-step sequence (card, blend) checks it to know it was cut off */
     epoch: () => gen,
     /* true = held in place; false = this browser can't hold speech (Chrome on Android ignores speechSynthesis.pause),
@@ -210,8 +296,10 @@ const Speech = (() => {
         if (selectedEngine !== 'browser') {
           LS.set('pp_voice_' + selectedEngine, v.value);
           if (selectedEngine === 'piper') {
-            st.piper = 'idle'; delete ENGINES.piper.lib; clearInstalled('piper'); mode = 'browser';
+            /* each Piper voice is its own model: switch to it now if it is saved and Piper was in use, else ask to download */
+            const wasActive = mode === 'piper'; st.piper = 'idle'; mode = 'browser';
             document.dispatchEvent(new Event('speechinterrupt')); stop();
+            if (wasActive && isInstalled('piper')) { syncVoiceControls(); return $('#vinstall').onclick() }
           } else if (st[selectedEngine] === 'ready' && mode === selectedEngine) {
             document.dispatchEvent(new Event('speechinterrupt')); stop(); mode = selectedEngine;
           } else mode = 'browser';
@@ -230,6 +318,9 @@ const Speech = (() => {
         syncVoiceControls();
       };
       const sample = $('#vpreview'); if (sample) sample.onclick = () => preview();
+      const manage = $('#vmanage'); if (manage) { manage.hidden = !canNeural; manage.onclick = () => openManager() }
+      const close = $('#vmClose'); if (close) close.onclick = () => $('#voiceMgr').close();
+      syncSaved();
       if (!canNeural) status(ENV.reason);
       else if (selectedEngine !== 'browser') status(isInstalled(selectedEngine) ? 'Browser voice active. Activate the saved natural voice when ready.' : 'Browser voice active. Download a natural voice to use it.');
       else status('Using browser voice');
