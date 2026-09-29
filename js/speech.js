@@ -139,11 +139,14 @@ const Speech = (() => {
       const t = clip.fb || clip.text; if (!TTS || !t || g !== gen) return res();
       usingA = false; let done = false, to, remaining = Math.max(3000, t.length * 120 + 2500), armedAt = 0;
       const disarm = () => { if (to) { clearTimeout(to); to = null; remaining = Math.max(0, remaining - (Date.now() - armedAt)) } };
-      const fin = () => { if (done) return; done = true; clearTimeout(to); if (cur === fin) { cur = null; pauseCurrent = resumeCurrent = null } res() };
-      const arm = () => { if (done) return; armedAt = Date.now(); to = setTimeout(fin, remaining) };
+      /* screen off / page hidden: the browser may hold speech, so the safety net must not skip unread text */
+      const vis = () => { if (document.hidden) disarm(); else if (!paused) arm() };
+      const fin = () => { if (done) return; done = true; clearTimeout(to); document.removeEventListener('visibilitychange', vis); if (cur === fin) { cur = null; pauseCurrent = resumeCurrent = null } res() };
+      const arm = () => { if (done || to || document.hidden) return; armedAt = Date.now(); to = setTimeout(fin, remaining) };
       cur = fin; pauseCurrent = () => { disarm(); speechSynthesis.pause() }; resumeCurrent = () => { arm(); speechSynthesis.resume() };
       const u = new SpeechSynthesisUtterance(t), bv = pickB(); u.lang = 'en-US'; if (bv) { u.voice = bv; u.lang = bv.lang } u.rate = clip.rate;
       u.onstart = () => hk.start && hk.start(); u.onboundary = e => { if (hk.prog && clip.text && (!e.name || e.name === 'word')) hk.prog(e.charIndex) }; u.onend = u.onerror = fin;
+      document.addEventListener('visibilitychange', vis);
       if (!paused) arm();  /* safety net if the browser never reports the end */
       setTimeout(async () => { if (!await waitPlaying(g)) return fin(); speechSynthesis.resume(); speechSynthesis.speak(u) }, 40)
     })
@@ -165,7 +168,8 @@ const Speech = (() => {
     if (clip.url) { if (!await waitPlaying(g)) return; return playUrl(clip.url, false, clip, hk, g) }
     if (!clip.blob) return playBrowser(clip, hk, g);
     let blob, wt = setTimeout(() => status('Preparing voice…'), 400);
-    try { blob = await Promise.race([clip.blob, new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), 25000))]); clearTimeout(wt); ready() }
+    /* a hidden page (screen off) runs synthesis slower: wait longer before giving up on the natural voice */
+    try { blob = await Promise.race([clip.blob, new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), document.hidden ? 120000 : 25000))]); clearTimeout(wt); ready() }
     catch (e) { clearTimeout(wt); if (g !== gen) return; if (e.message !== 'stale') {
         fails++; console.warn('Natural voice error', e);
         if (fails >= 3) { mode = 'browser'; syncVoiceControls(); status('Natural voice kept failing, so the browser voice is now active. Choose Activate Saved Voice to try again.') }

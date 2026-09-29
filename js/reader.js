@@ -1,5 +1,6 @@
 /* ---------- Reader (text-to-speech + highlight + lookup) ---------- */
-function Reader(root, input) {
+let mediaOwner = null;   /* the reader whose controls are on the lock screen / notification */
+function Reader(root, input, name) {
     root.innerHTML = (input ? '<textarea placeholder="Paste or type your text here…" aria-label="Text to read"></textarea>' : '') +
         '<div class="view" hidden></div><div class="row rctrl" style="margin:10px 0"><button class="btn go" title="' + (input ? 'Start reading from the cursor position' : 'Start reading this book page') + '">▶ ' + (input ? 'Read From Here' : 'Read It to Me') + '</button><button class="btn t toggle-read" title="Pause reading" aria-pressed="false" disabled>❚❚ Pause</button><button class="btn s st" title="Stop reading and reset this session" disabled>■ Stop</button><button class="btn s cl" title="Clear the current text or book view">✕ Clear Text</button>' + (input ? '<button class="btn p ed" title="Return to the text box and choose a new starting point">✎ Edit text</button>' : '') +
         '<select class="rate" aria-label="Speed" title="Choose reading speed"><option value=".6">Slow</option><option value=".85" selected>Normal</option><option value="1.1">Fast</option></select><span class="mut cnt"></span><span class="mut rstate" aria-live="polite"></span></div>' +
@@ -10,8 +11,10 @@ function Reader(root, input) {
        broken: paused, but another sound took over the speech engine, so Resume replays from lastOff
        quiet: this reader is stopping speech itself, so ignore its own 'speechinterrupt' */
     let pages = [], pi = 0, spans = [], chunks = [], gen = 0, si = 0, state = 'IDLE', lastOff = 0, readFrom = 0, lastTappedSpan = null, lastTapAt = 0, broken = false, quiet = false;
+    const me = {}, ms = navigator.mediaSession;
     function setState(next, message) {
         state = next;
+        if (ms && mediaOwner === me) ms.playbackState = state === 'READING' ? 'playing' : state === 'PAUSED' ? 'paused' : 'none';
         const toggle = q('.toggle-read');
         q('.go').disabled = state !== 'IDLE';
         toggle.disabled = state !== 'READING' && state !== 'PAUSED';
@@ -46,10 +49,20 @@ function Reader(root, input) {
         const a = [], re = /[^.!?\n]+[.!?]*\s*/g; let m;
         while (m = re.exec(t)) { let x = m[0], o = m.index; while (x.length > 240) { let k = x.lastIndexOf(' ', 240); if (k < 80) k = 240; a.push({ o, t: x.slice(0, k) }); x = x.slice(k); o += k } if (x.trim()) a.push({ o, t: x }) } return a
     }
+    /* lock-screen / notification controls, so reading can be paused or resumed with the screen off */
+    function claimMedia() {
+        if (!ms) return; mediaOwner = me;
+        try { ms.metadata = new MediaMetadata({ title: name() + (pages.length > 1 ? ' (page ' + (pi + 1) + ')' : ''), artist: 'PhonicsPal' }) } catch (e) { }
+        /* 'play' while READING: the phone paused the audio itself (e.g. a call), so just continue */
+        for (const [action, fn] of [['play', () => state === 'PAUSED' ? resume() : Speech.resume()], ['pause', pause], ['stop', resetSession]])
+            try { ms.setActionHandler(action, fn) } catch (e) { }
+    }
     let pre = [];
     /* play(from): start at character offset `from` of the current page (0 = top) */
     function play(from = 0) {
-        const g = ++gen; stopSpeech(); pre = []; broken = false; lastOff = from; setState('READING');
+        const g = ++gen; stopSpeech(); pre = []; broken = false; lastOff = from; claimMedia();
+        /* phone browsers usually hold the browser voice when the screen turns off; the natural voice plays as audio and keeps going */
+        setState('READING', ENV.mobile && !Speech.natural() ? 'Reading… Tip: to keep listening with the screen off, choose a Natural Voice at the top.' : undefined);
         chunks = chunk(pages[pi] || '').filter(c => c.o + c.t.length > from).map(c => c.o < from ? { o: from, t: c.t.slice(from - c.o) } : c); setTimeout(() => run(0, g), 0)
     }
     function run(i, g) {
@@ -57,7 +70,8 @@ function Reader(root, input) {
         if (state !== 'READING') return;
         if (i >= chunks.length) { if (pi < pages.length - 1) { pi++; render(); return play() } setState('IDLE', 'Finished reading.'); return clear() }
         const c = chunks[i], r = +rate.value; pre[i] = pre[i] || Speech.prepare(c.t, r);
-        if (chunks[i + 1] && !pre[i + 1]) pre[i + 1] = Speech.prepare(chunks[i + 1].t, r);
+        /* synthesize a few sentences ahead so the next clip is ready even when a screen-off phone slows the page down */
+        for (let j = i + 1; j <= i + 3 && j < chunks.length; j++) if (!pre[j]) pre[j] = Speech.prepare(chunks[j].t, r);
         Speech.play(pre[i], { start: () => g === gen && hl(c.o), prog: k => g === gen && hl(c.o + k) }).then(() => run(i + 1, g)).catch(e => { if (g === gen) { cnt.textContent = 'Speech stopped: ' + String(e.message || e); setState('IDLE', 'Reading could not continue.') } })
     }
     /* Stop: end speech and go back to the start of the current page (a book keeps its page) */
@@ -110,4 +124,4 @@ function Reader(root, input) {
     document.addEventListener('tabchange', e => { if (root.closest('section').id !== e.detail.to) pause() });
     const api = { load(p) { resetSession(); pages = p; pi = 0; look.hidden = true; render(); setState('IDLE', 'Book ready. Choose Read It to Me.') }, stop: resetSession, wipe, onClear: null }; setState('IDLE'); return api
 }
-const RW = Reader($('#rw'), true), BK = Reader($('#bk'), false);
+const RW = Reader($('#rw'), true, () => 'Read With Me'), BK = Reader($('#bk'), false, () => $('#btitle').textContent || 'My book');

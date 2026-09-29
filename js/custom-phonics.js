@@ -12,8 +12,8 @@ function customAdd(i, s, ex) {
 function customDel(i, id) { const all = customAll(), k = CK[i]; all[k] = (all[k] || []).filter(x => x.id !== id); LS.set(CUSTOM_KEY, all) }
 /* stored entry -> the item shape phCard() expects (spoken by the voice engine; no recorded mp3 for custom cards) */
 const customItem = (i, c) => ({ s: c.s, k: 'custom', fb: i === 3 ? c.s + 'uh' : c.s, ex: c.ex ? [c.ex] : [], custom: true, id: c.id });
-/* "ship" -> sh-i-p ; a word typed with dashes (c-a-t) is kept as typed */
-const splitWord = w => w.includes('-') ? w.split('-').filter(Boolean) : (w.match(/sh|ch|th|wh|ck|ng|ph|qu|./g) || []);
+/* "ship" -> sh-i-p, "queen" -> qu-ee-n, "bird" -> b-ir-d ; a word typed with dashes (c-a-t) is kept as typed */
+const splitWord = w => w.includes('-') ? w.split('-').filter(Boolean) : (w.match(/igh|sh|ch|th|wh|ck|ng|ph|qu|ai|ay|ee|ea|ie|oa|oo|ou|ow|oi|oy|ar|er|ir|or|ur|./g) || []);
 /* card + small remove button (a button cannot sit inside the card button) */
 function wrapDel(i, id, node) {
    const w = h('div', 'ph-wrap'), x = h('button', 'ph-x', '✕'); x.type = 'button'; x.title = 'Remove this card'; x.setAttribute('aria-label', 'Remove custom card');
@@ -29,7 +29,7 @@ function initCustomForm() {
       $('#cf-lbl').textContent = wb ? 'Word (dashes set the sounds, e.g. c-a-t)' : 'Blend or letters (e.g. bl)'
    };
    cat.onchange = () => { msg.textContent = ''; sync() };
-   add.onclick = () => { box.hidden = !box.hidden; add.setAttribute('aria-expanded', String(!box.hidden)); if (!box.hidden) { if (phTab in CK) cat.value = phTab; sync(); bl.focus() } };
+   add.onclick = () => { stopPhonics(); box.hidden = !box.hidden; add.setAttribute('aria-expanded', String(!box.hidden)); if (!box.hidden) { if (phTab in CK) cat.value = phTab; sync(); bl.focus() } };
    $('#cf-cancel').onclick = () => { box.hidden = true; add.setAttribute('aria-expanded', 'false'); msg.textContent = '' };
    $('#cf-save').onclick = () => {
       const i = +cat.value, wb = i === 7; let s = bl.value.trim().toLowerCase(); const e = ex.value.trim().toLowerCase();
