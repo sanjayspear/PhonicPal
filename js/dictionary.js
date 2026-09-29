@@ -1,5 +1,5 @@
 /* ---------- Dictionary (starter list) ---------- */
-const DICT={};`butterfly|noun|a colorful insect with big wings|The butterfly landed on a flower.
+const DICT = {}; `butterfly|noun|a colorful insect with big wings|The butterfly landed on a flower.
 curious|adjective|wanting to learn or know more|The curious cat looked in the box.
 village|noun|a small town in the countryside|Our village has one little school.
 wander|verb|to walk around with no plan|We wander through the park.
@@ -35,60 +35,83 @@ mountain|noun|a very high hill|Snow sits on top of the mountain.
 treasure|noun|gold, jewels and other valuable things|The pirates hid their treasure.
 rainbow|noun|colored arcs in the sky after rain|We saw a rainbow after the storm.
 book|noun|pages with words or pictures fastened together|I borrowed a book about space.
-read|verb|to look at words and understand them|I love to read every night.`.split('\n').forEach(l=>{const[w,p,m,e]=l.split('|');DICT[w]={w,p,m,e}});
-const saved=()=>LS.get('pp_words',[]);
-function find(raw){const w=raw.toLowerCase().replace(/[^a-z']/g,'').replace(/'s$/,'');if(!w)return null;
- const s=saved().find(x=>x.w===w);if(s)return s;
- for(const c of[w,w.replace(/(s|es|ed|ing|ly)$/,''),w.replace(/(ed|ing)$/,'e')])if(DICT[c])return DICT[c];return{w,none:1}}
+read|verb|to look at words and understand them|I love to read every night.`.split('\n').forEach(l => { const [w, p, m, e] = l.split('|'); DICT[w] = { w, p, m, e } });
+const saved = () => LS.get('pp_words', []);
+function find(raw) {
+  const w = raw.toLowerCase().replace(/[^a-z']/g, '').replace(/'s$/, ''); if (!w) return null;
+  const s = saved().find(x => x.w === w); if (s) return s;
+  for (const c of [w, w.replace(/(s|es|ed|ing|ly)$/, ''), w.replace(/(ed|ing)$/, 'e')]) if (DICT[c]) return DICT[c]; return { w, none: 1 }
+}
 /* ---------- Online lookup: Free Dictionary API, with Wiktionary and Datamuse as fallbacks ---------- */
-const online=new Map();
-const clean=raw=>raw.toLowerCase().replace(/[^a-z']/g,'').replace(/'s$/,'');
-const txt=s=>new DOMParser().parseFromString(String(s||''),'text/html').body.textContent.replace(/\s+/g,' ').trim();
-const POS={n:'noun',v:'verb',adj:'adjective',adv:'adverb'};
+const online = new Map();
+const clean = raw => raw.toLowerCase().replace(/[^a-z']/g, '').replace(/'s$/, '');
+const txt = s => new DOMParser().parseFromString(String(s || ''), 'text/html').body.textContent.replace(/\s+/g, ' ').trim();
+const POS = { n: 'noun', v: 'verb', adj: 'adjective', adv: 'adverb' };
 /* GET + JSON. Returns undefined for 404 (word not in this dictionary); THROWS for network/CORS/timeout/HTTP/parse problems */
-async function getJSON(url,signal){const r=await fetch(url,{signal});
- if(r.status===404)return undefined;
- if(!r.ok)throw new Error('HTTP '+r.status);
- return r.json()}
+async function getJSON(url, signal) {
+  const r = await fetch(url, { signal });
+  if (r.status === 404) return undefined;
+  if (!r.ok) throw new Error('HTTP ' + r.status);
+  return r.json()
+}
 /* Every parser returns {w, p: part of speech, ph: phonetic, m: definition, ex: [up to 2 examples]} or null */
-function parseEntry(d){if(!Array.isArray(d)||!d[0])return null;let p='',m='';const ex=[];      /* Free Dictionary API */
- for(const en of d)for(const mn of en.meanings||[])for(const x of mn.definitions||[]){
-  if(!m){m=x.definition;p=mn.partOfSpeech||''}
-  if(x.example&&ex.length<2&&!ex.includes(x.example))ex.push(x.example)}
- const ph=d[0].phonetic||(d[0].phonetics||[]).map(x=>x.text).find(Boolean)||'';
- return m?{w:String(d[0].word).toLowerCase(),p,ph,m,ex}:null}
-function parseWikt(d,t){const en=d&&d.en;if(!Array.isArray(en))return null;let p='',m='';const ex=[];  /* Wiktionary REST API (HTML -> text) */
- for(const s of en)for(const x of s.definitions||[]){const def=txt(x.definition);if(!def)continue;
-  if(!m){m=def;p=String(s.partOfSpeech||'').toLowerCase()}
-  for(const e of x.examples||[]){const q=txt(e);if(q&&ex.length<2&&!ex.includes(q))ex.push(q)}}
- return m?{w:t,p,ph:'',m,ex}:null}
-function parseMuse(d,t){const e=Array.isArray(d)&&d[0];if(!e||e.word!==t||!e.defs||!e.defs.length)return null;   /* Datamuse: "adj\tdefinition" */
- const[k,...r]=e.defs[0].split('\t'),m=r.join(' ').trim();return m?{w:t,p:POS[k]||'',ph:'',m,ex:[]}:null}
+function parseEntry(d) {
+  if (!Array.isArray(d) || !d[0]) return null; let p = '', m = ''; const ex = [];      /* Free Dictionary API */
+  for (const en of d) for (const mn of en.meanings || []) for (const x of mn.definitions || []) {
+    if (!m) { m = x.definition; p = mn.partOfSpeech || '' }
+    if (x.example && ex.length < 2 && !ex.includes(x.example)) ex.push(x.example)
+  }
+  const ph = d[0].phonetic || (d[0].phonetics || []).map(x => x.text).find(Boolean) || '';
+  return m ? { w: String(d[0].word).toLowerCase(), p, ph, m, ex } : null
+}
+function parseWikt(d, t) {
+  const en = d && d.en; if (!Array.isArray(en)) return null; let p = '', m = ''; const ex = [];  /* Wiktionary REST API (HTML -> text) */
+  for (const s of en) for (const x of s.definitions || []) {
+    const def = txt(x.definition); if (!def) continue;
+    if (!m) { m = def; p = String(s.partOfSpeech || '').toLowerCase() }
+    for (const e of x.examples || []) { const q = txt(e); if (q && ex.length < 2 && !ex.includes(q)) ex.push(q) }
+  }
+  return m ? { w: t, p, ph: '', m, ex } : null
+}
+function parseMuse(d, t) {
+  const e = Array.isArray(d) && d[0]; if (!e || e.word !== t || !e.defs || !e.defs.length) return null;   /* Datamuse: "adj\tdefinition" */
+  const [k, ...r] = e.defs[0].split('\t'), m = r.join(' ').trim(); return m ? { w: t, p: POS[k] || '', ph: '', m, ex: [] } : null
+}
 /* Each provider resolves to an entry or null (not found) and THROWS when it could not be reached. Order = priority. */
-const PROVIDERS=[
- {name:'Free Dictionary',get:async(t,s)=>parseEntry(await getJSON('https://api.dictionaryapi.dev/api/v2/entries/en/'+encodeURIComponent(t),s))},
- {name:'Wiktionary',get:async(t,s)=>parseWikt(await getJSON('https://en.wiktionary.org/api/rest_v1/page/definition/'+encodeURIComponent(t),s),t)},
- {name:'Datamuse',get:async(t,s)=>parseMuse(await getJSON('https://api.datamuse.com/words?max=1&md=dp&sp='+encodeURIComponent(t),s),t)}];
+const PROVIDERS = [
+  { name: 'Free Dictionary', get: async (t, s) => parseEntry(await getJSON('https://api.dictionaryapi.dev/api/v2/entries/en/' + encodeURIComponent(t), s)) },
+  { name: 'Wiktionary', get: async (t, s) => parseWikt(await getJSON('https://en.wiktionary.org/api/rest_v1/page/definition/' + encodeURIComponent(t), s), t) },
+  { name: 'Datamuse', get: async (t, s) => parseMuse(await getJSON('https://api.datamuse.com/words?max=1&md=dp&sp=' + encodeURIComponent(t), s), t) }];
 /* resolves to an entry, null (word not found) or {fail:true} (no dictionary could be reached at all) */
-async function fetchWord(w){if(online.has(w))return online.get(w);
- const forms=[...new Set([w,w.replace(/(s|es|ed|ing|ly)$/,''),w.replace(/(ed|ing)$/,'e')])].filter(x=>x.length>1);
- const down=new Set();let answered=false;      /* answered = at least one provider replied (even with "not found") */
- for(const t of forms)for(const P of PROVIDERS){if(down.has(P.name))continue;
-  const ac=new AbortController(),to=setTimeout(()=>ac.abort(),7000);
-  try{const e=await P.get(t,ac.signal);answered=true;if(e){online.set(w,e);return e}}
-  catch(err){down.add(P.name);console.warn('[PhonicsPal] '+P.name+' lookup failed for "'+t+'":',err)}   /* CORS / network / timeout: try the next provider */
-  finally{clearTimeout(to)}}
- return answered?null:{fail:true}}
-let lookTok=0;   /* ignore late answers when the user has clicked another word */
-async function showLook(el,raw){const w=clean(raw);if(!w)return;const tok=++lookTok;el.hidden=false;el.replaceChildren();
- const top=h('div','row'),body=h('div');top.append(h('b','lw',w));const ic=h('button','ic','🔊');ic.setAttribute('aria-label','Hear the word');ic.onclick=()=>sp(w,.7);top.append(ic);el.append(top,body);sp(w,.7);
- let e=find(raw);
- if(e.none){body.append(h('p','mut','Looking up “'+w+'”…'));e=await fetchWord(w);if(tok!==lookTok)return;body.replaceChildren();
-  if(!e||e.fail){body.append(h('p','mut',e?(navigator.onLine===false?'You seem to be offline. Check your internet connection and try again.':'The online dictionary isn’t answering right now. Please try again in a moment.'):'No definition found for “'+w+'”. Check the spelling.'));
-   const r=h('button','btn t','↻ Try again');r.onclick=()=>showLook(el,raw);body.append(r);return}}
- const ex=(e.ex||(e.e?[e.e]:[])).slice(0,2);
- body.append(h('i',0,[e.ph,e.p].filter(Boolean).join('  ·  ')),h('p',0,e.m));
- ex.forEach(t=>body.append(h('p','mut','“'+t+'”')));if(!ex.length)body.append(h('p','mut','No example sentence available for this word.'));
- const sv=h('button','btn g',saved().some(x=>x.w===e.w)?'✓ Saved':'+ Save Word');
- sv.onclick=()=>{const l=saved().filter(x=>x.w!==e.w);l.push({w:e.w,p:e.p||'',m:e.m,e:ex[0]||'',ex});LS.set('pp_words',l);sv.textContent='✓ Saved';renderVocab()};
- body.append(sv)}
+async function fetchWord(w) {
+  if (online.has(w)) return online.get(w);
+  const forms = [...new Set([w, w.replace(/(s|es|ed|ing|ly)$/, ''), w.replace(/(ed|ing)$/, 'e')])].filter(x => x.length > 1);
+  const down = new Set(); let answered = false;      /* answered = at least one provider replied (even with "not found") */
+  for (const t of forms) for (const P of PROVIDERS) {
+    if (down.has(P.name)) continue;
+    const ac = new AbortController(), to = setTimeout(() => ac.abort(), 7000);
+    try { const e = await P.get(t, ac.signal); answered = true; if (e) { online.set(w, e); return e } }
+    catch (err) { down.add(P.name); console.warn('[PhonicsPal] ' + P.name + ' lookup failed for "' + t + '":', err) }   /* CORS / network / timeout: try the next provider */
+    finally { clearTimeout(to) }
+  }
+  return answered ? null : { fail: true }
+}
+let lookTok = 0;   /* ignore late answers when the user has clicked another word */
+async function showLook(el, raw) {
+  const w = clean(raw); if (!w) return; const tok = ++lookTok; el.hidden = false; el.replaceChildren();
+  const top = h('div', 'row'), body = h('div'); top.append(h('b', 'lw', w)); const ic = h('button', 'ic', '🔊'); ic.title = 'Hear ' + w + ' aloud'; ic.setAttribute('aria-label', 'Hear the word'); ic.onclick = () => sp(w, .7); top.append(ic); el.append(top, body); sp(w, .7);
+  let e = find(raw);
+  if (e.none) {
+    body.append(h('p', 'mut', 'Looking up “' + w + '”…')); e = await fetchWord(w); if (tok !== lookTok) return; body.replaceChildren();
+    if (!e || e.fail) {
+      body.append(h('p', 'mut', e ? (navigator.onLine === false ? 'You seem to be offline. Check your internet connection and try again.' : 'The online dictionary isn’t answering right now. Please try again in a moment.') : 'No definition found for “' + w + '”. Check the spelling.'));
+      const r = h('button', 'btn t', '↻ Try again'); r.title = 'Retry the online dictionary lookup'; r.onclick = () => showLook(el, raw); body.append(r); return
+    }
+  }
+  const ex = (e.ex || (e.e ? [e.e] : [])).slice(0, 2);
+  body.append(h('i', 0, [e.ph, e.p].filter(Boolean).join('  ·  ')), h('p', 0, e.m));
+  ex.forEach(t => body.append(h('p', 'mut', '“' + t + '”'))); if (!ex.length) body.append(h('p', 'mut', 'No example sentence available for this word.'));
+  const sv = h('button', 'btn g', saved().some(x => x.w === e.w) ? '✓ Saved' : '+ Save Word'); sv.title = 'Add this word to My Vocabulary';
+  sv.onclick = () => { const l = saved().filter(x => x.w !== e.w); l.push({ w: e.w, p: e.p || '', m: e.m, e: ex[0] || '', ex }); LS.set('pp_words', l); sv.textContent = '✓ Saved'; sv.title = 'This word is saved in My Vocabulary'; renderVocab() };
+  body.append(sv)
+}
