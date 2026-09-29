@@ -1,14 +1,20 @@
 /* ---------- Reader (text-to-speech + highlight + lookup) ---------- */
 function Reader(root, input) {
     root.innerHTML = (input ? '<textarea placeholder="Paste or type your text here…" aria-label="Text to read"></textarea>' : '') +
-        '<div class="view" hidden></div><div class="row rctrl" style="margin:10px 0"><button class="btn go" title="' + (input ? 'Start reading from the cursor position' : 'Start reading this book page') + '">▶ ' + (input ? 'Read From Here' : 'Read It to Me') + '</button><button class="btn t pa" title="Temporarily pause reading" disabled>❚❚ Pause</button><button class="btn t re" title="Continue from the paused position" disabled>▶ Resume</button><button class="btn s st" title="Stop reading and reset this session" disabled>■ Stop</button><button class="btn s cl" title="Clear the current text or book view">✕ Clear Text</button>' + (input ? '<button class="btn p ed" title="Return to the text box and choose a new starting point">✎ Edit text</button>' : '') +
+        '<div class="view" hidden></div><div class="row rctrl" style="margin:10px 0"><button class="btn go" title="' + (input ? 'Start reading from the cursor position' : 'Start reading this book page') + '">▶ ' + (input ? 'Read From Here' : 'Read It to Me') + '</button><button class="btn t toggle-read" title="Pause reading" aria-pressed="false" disabled>❚❚ Pause</button><button class="btn s st" title="Stop reading and reset this session" disabled>■ Stop</button><button class="btn s cl" title="Clear the current text or book view">✕ Clear Text</button>' + (input ? '<button class="btn p ed" title="Return to the text box and choose a new starting point">✎ Edit text</button>' : '') +
         '<select class="rate" aria-label="Speed" title="Choose reading speed"><option value=".6">Slow</option><option value=".85" selected>Normal</option><option value="1.1">Fast</option></select><span class="mut cnt"></span><span class="mut rstate" aria-live="polite"></span></div>' +
         '<div class="row pg" hidden><button class="btn p pv" title="Go to the previous page">◀ Back</button><span class="pn"></span><button class="btn p nx" title="Go to the next page">Next ▶</button></div><div class="look" hidden></div>';
     const q = s => $(s, root), view = q('.view'), ta = q('textarea'), cnt = q('.cnt'), look = q('.look'), rate = q('.rate'), pgb = q('.pg');
     let pages = [], pi = 0, spans = [], chunks = [], gen = 0, si = 0, state = 'IDLE', lastOff = 0;
     function setState(next, message) {
         state = next;
-        q('.go').disabled = state !== 'IDLE'; q('.pa').disabled = state !== 'READING'; q('.re').disabled = state !== 'PAUSED'; q('.st').disabled = state !== 'READING' && state !== 'PAUSED';
+        const toggle = q('.toggle-read');
+        q('.go').disabled = state !== 'IDLE';
+        toggle.disabled = state !== 'READING' && state !== 'PAUSED';
+        toggle.textContent = state === 'PAUSED' ? '▶ Resume' : '❚❚ Pause';
+        toggle.title = state === 'PAUSED' ? 'Continue reading from the paused position' : 'Temporarily pause reading';
+        toggle.setAttribute('aria-pressed', String(state === 'PAUSED'));
+        q('.st').disabled = state !== 'READING' && state !== 'PAUSED';
         const labels = { IDLE: 'Ready to read.', READING: 'Reading…', PAUSED: 'Reading paused.', STOPPED: 'Reading stopped.' };
         q('.rstate').textContent = message || labels[state];
     }
@@ -41,7 +47,7 @@ function Reader(root, input) {
         if (chunks[i + 1] && !pre[i + 1]) pre[i + 1] = Speech.prepare(chunks[i + 1].t, r);
         Speech.play(pre[i], { start: () => g === gen && hl(c.o), prog: k => g === gen && hl(c.o + k) }).then(() => run(i + 1, g)).catch(e => { if (g === gen) { cnt.textContent = 'Speech stopped: ' + String(e.message || e); setState('IDLE', 'Reading could not continue.') } })
     }
-    const resetSession = () => { gen++; setState('STOPPED'); Speech.stop(); lastOff = 0; clear(); pi = 0; if (pages.length && view.hidden === false) render(); setState('IDLE', 'Reading stopped. Ready when you are.') };
+    const resetSession = () => { gen++; setState('STOPPED'); Speech.stop(); lastOff = 0; chunks = []; pre = []; clear(); pi = 0; if (pages.length && view.hidden === false) render(); setState('IDLE', 'Reading stopped. Ready when you are.') };
     const pause = () => { if (state !== 'READING') return; Speech.pause(); setState('PAUSED') };
     const resume = () => { if (state !== 'PAUSED') return; Speech.resume(); setState('READING') };
     const interrupt = () => { if (state !== 'READING' && state !== 'PAUSED') return; gen++; setState('STOPPED'); lastOff = 0; clear(); setState('IDLE', 'Reading stopped so another sound can play.') };
@@ -54,7 +60,7 @@ function Reader(root, input) {
         if (state !== 'IDLE') return; let from = 0; if (ta) { const t = ta.value; if (!t.trim()) { cnt.textContent = 'Please add some text first.'; return } from = ta.selectionStart || 0; pages = [t]; pi = 0; render(); look.hidden = true }
         else if (!pages.length) return; play(from)
     };
-    q('.pa').onclick = pause; q('.re').onclick = resume;
+    q('.toggle-read').onclick = () => state === 'PAUSED' ? resume() : pause();
     q('.st').onclick = resetSession; q('.cl').onclick = wipe;
     q('.pv').onclick = () => { if (pi > 0) { resetSession(); pi--; render() } }; q('.nx').onclick = () => { if (pi < pages.length - 1) { resetSession(); pi++; render() } };
     if (ta) {
