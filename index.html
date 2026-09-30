@@ -40,7 +40,7 @@
             <div class="grid g2">
                 <button class="card" data-go="phonics">
                     <h3>🔊 Phonics</h3>
-                    <p class="mut">Hear vowels, consonants and blends</p>
+                    <p class="mut">60+ topics: sounds, rhymes, word families, stories and games</p>
                 </button>
                 <button class="card" data-go="read">
                     <h3>📖 Read With Me</h3>
@@ -83,7 +83,9 @@
                 <button class="btn t kid-btn" id="phIntro" type="button"
                     title="What phonics is and how to teach it">ℹ️ Start here</button>
             </div>
-            <div class="tabs" id="ptabs"></div>
+            <p class="kid-shelf" id="pstickers" aria-live="polite"></p>
+            <div class="pgroups" id="pgroups" role="group" aria-label="Topic groups"></div>
+            <div class="tabs" id="ptabs" role="group" aria-label="Topics in this group"></div>
             <div class="kid-mascot"><span class="kid-owl" aria-hidden="true">🦉</span>
                 <p class="kid-bubble" id="pmascot"></p>
             </div>
@@ -248,13 +250,36 @@
                     </ul>
                     <h3>Phonics</h3>
                     <ul class="guide-list">
-                        <li><strong>Vowel Sounds, Consonant Sounds, Vowel Teams, Consonant Blending, Consonant
-                                Digraphs, R-Controlled Vowels, Diphthongs, Word Blending Practice:</strong> switch to
-                            that practice group.</li>
-                        <li><strong>Sound or word card:</strong> plays the sound and its example word or words; use a
-                            card to listen and repeat.</li>
-                        <li><strong>Read sentence aloud (🔊):</strong> reads a practice sentence.</li>
-                        <li><strong>Blend:</strong> plays the sounds in order, then the completed word.</li>
+                        <li><strong>Topic groups</strong> (Short Vowels, Phonemic Awareness, Letter-Sound
+                            Correspondence, Basic Word Patterns, Consonants, Vowels, Advanced Phonics, Reading
+                            Application): the big buttons at the top. Each shows a suggested age and how many of its
+                            games have been won.</li>
+                        <li><strong>Topic tabs:</strong> choose a topic inside the group. A topic that belongs to two
+                            groups (for example Short Vowels) is the same page, with the same stars, in both.</li>
+                        <li><strong>ℹ️ For grown-ups:</strong> what the topic is, why it matters, how to teach it, a game
+                            to play at home and what to watch out for. Choose <strong>🔊 Read it to me</strong> to listen instead of
+                            reading (the part being read is highlighted), tap 🔊 next to a heading to hear just that part,
+                            or tick <strong>Always read guides aloud</strong> so every guide starts reading as it opens.</li>
+                        <li><strong>🎮 Play the game:</strong> a five-round game for the topic. Every first-try answer
+                            earns a star; winning a game earns that topic's sticker (shown under My stickers).</li>
+                        <li><strong>Sound or word card, word chip or group header (🔊):</strong> plays the sound and its
+                            words; tap a group header to hear every word in it.</li>
+                        <li><strong>Read sentence aloud (🔊):</strong> reads a practice sentence. Tap a single word in a
+                            sentence or story to hear just that word.</li>
+                        <li><strong>Blend / Listen:</strong> plays the sounds in order, then the completed word, then
+                            shows its picture. In Blending Phonemes the letters stay hidden until the end.</li>
+                        <li><strong>Say it slowly:</strong> drops each sound into its sound box.</li>
+                        <li><strong>Clap cards, sound swaps, onset and rime cards, word builders:</strong> tap the card
+                            to hear its parts, then the whole word.</li>
+                        <li><strong>Word Families:</strong> choose a family (-at, -an…), then tap a first letter to make
+                            a new word. <strong>Say the whole family</strong> reads them all.</li>
+                        <li><strong>Silent E:</strong> <strong>Add magic e</strong> turns kit into kite; <strong>Hear
+                                both</strong> compares the two words.</li>
+                        <li><strong>Dictation:</strong> tap a card to hear a word, spell it, then tap
+                            <strong>Check</strong>.</li>
+                        <li><strong>Fluency Practice:</strong> <strong>Read it to me</strong>, <strong>Echo
+                                read</strong> (a sentence, then your turn), and <strong>Time my reading</strong>, which
+                            keeps your best time for each passage.</li>
                         <li><strong>Add Custom Blend:</strong> opens the form for a personal practice card. Choose a
                             category, enter a blend or a word, and add an example when requested.</li>
                         <li><strong>Save Card:</strong> checks and saves the custom card, then shows it in the selected
@@ -370,6 +395,11 @@
     <dialog class="tour-dialog guide-dlg" id="guideDlg" aria-labelledby="guideTitle">
         <p class="tour-progress">For parents and teachers</p>
         <h2 id="guideTitle"></h2>
+        <div class="row gd-voice">
+            <button class="btn t" id="guideVoice" type="button" aria-pressed="false"
+                title="Listen to this guide instead of reading it">🔊 Read it to me</button>
+            <label class="gd-auto"><input type="checkbox" id="guideAuto"> Always read guides aloud</label>
+        </div>
         <div id="guideBody"></div>
         <div class="row tour-actions"><button class="btn" id="guideClose" type="button">Got it</button></div>
     </dialog>
@@ -391,8 +421,10 @@
     <script src="js/dictionary.js"></script>
     <script src="js/reader.js"></script>
     <script src="js/curriculum.js"></script>
+    <script src="js/topics.js"></script>
     <script src="js/custom-phonics.js"></script>
     <script src="js/phonics-guide.js"></script>
+    <script src="js/phonics-views.js"></script>
     <script src="js/phonics.js"></script>
     <script src="js/phonics-game.js"></script>
     <script src="js/books.js"></script>

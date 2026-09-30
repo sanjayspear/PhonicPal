@@ -20,9 +20,13 @@ Use Chrome or Edge for the best text-to-speech and word highlighting. Internet i
 | `js/dictionary.js` | Starter dictionary (37 words), online lookup (Free Dictionary API with Wiktionary/Datamuse fallbacks), word lookup panel, save word |
 | `js/reader.js` | Reader: text-to-speech, word highlight, pause/resume/stop, paging |
 | `js/custom-phonics.js` | User-added phonics cards (localStorage `pp_custom_ph`) and the "Add Custom Blend" form |
-| `js/phonics.js` | Vowel (short + long)/consonant/blend data and phonics screens |
+| `js/topics.js` | The phonics topic map: 62 topics in 8 groups (following the phonics topic list), their words, sounds, pictures and stories |
+| `js/phonics-views.js` | Page builders for each kind of topic page (cards, blending, sound boxes, word families, magic e, stories, fluency timer…) and the sound "steps" they play |
+| `js/phonics-guide.js` | "For grown-ups" guide for every topic, the "Start here" guide, stars and stickers |
+| `js/phonics.js` | Phonics screen: group bar, topic tabs, the open topic |
+| `js/phonics-game.js` | "Play the game": a 5-round game per topic, built from question makers (rhyme, clap, swap, spell, sort, read…) |
 | `assets/audio/` | Recorded phonics sounds and example words (mp3) |
-| `tools/` | Scripts used to generate the audio |
+| `tools/` | Scripts used to generate the audio (`gen_audio_topics.py`: sounds, letter names, word endings and words for the topic map) |
 | `js/books.js` | Upload (PDF/TXT/EPUB, 35 MB), text extraction, IndexedDB library |
 | `js/vocabulary.js` | My Vocabulary list and practice quiz |
 | `js/home.js` | Home page word of the day, initial route |
@@ -30,7 +34,7 @@ Use Chrome or Edge for the best text-to-speech and word highlighting. Internet i
 Scripts are classic (non-module) and share globals, so **load order in `index.html` matters**.
 
 ## Phonics sounds (recorded audio)
-All phonics sounds and example words are **pre-rendered audio files** in `assets/audio/` (`s_<id>.mp3` sounds, `w_<word>.mp3` words), made with the open-source Kokoro voice, so they play instantly and identically in every browser with no model download. Vowels cover short and long sounds (a e i o u / ā ē ī ō ū) with the example words from the requirements. If a file is missing the app falls back to the browser voice.
+All phonics sounds and example words are **pre-rendered audio files** in `assets/audio/` (`s_<id>.mp3` sounds, `w_<word>.mp3` words, `n_<letter>.mp3` letter names, `r_<ending>.mp3` word endings), made with the open-source Kokoro voice, so they play instantly and identically in every browser with no model download. Vowels cover short and long sounds (a e i o u / ā ē ī ō ū) with the example words from the requirements. If a file is missing the app falls back to the browser voice.
 To regenerate or tweak them, see `tools/gen_audio.py` (needs Python, `kokoro-onnx`, `praat-parselmouth`, ffmpeg and the Kokoro model files). Or just replace any mp3 with a better recording using the same file name.
 
 ## Natural voice
