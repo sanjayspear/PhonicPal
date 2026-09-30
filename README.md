@@ -20,7 +20,7 @@ Use Chrome or Edge for the best text-to-speech and word highlighting. Internet i
 | `js/dictionary.js` | Starter dictionary (37 words), online lookup (Free Dictionary API with Wiktionary/Datamuse fallbacks), word lookup panel, save word |
 | `js/reader.js` | Reader: text-to-speech, word highlight, pause/resume/stop, paging |
 | `js/custom-phonics.js` | User-added phonics cards (localStorage `pp_custom_ph`) and the "Add Custom Blend" form |
-| `js/topics.js` | The phonics topic map: 62 topics in 8 groups (following the phonics topic list), their words, sounds, pictures and stories |
+| `js/topics.js` | The phonics topic map: 62 topics in 8 groups, their words, sounds, pictures and stories |
 | `js/phonics-views.js` | Page builders for each kind of topic page (cards, blending, sound boxes, word families, magic e, stories, fluency timer…) and the sound "steps" they play |
 | `js/phonics-guide.js` | "For grown-ups" guide for every topic, the "Start here" guide, stars and stickers |
 | `js/phonics.js` | Phonics screen: group bar, topic tabs, the open topic |

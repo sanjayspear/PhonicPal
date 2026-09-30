@@ -1,4 +1,4 @@
-/* The phonics topic map. Groups follow listof_phonics_topic.txt; a topic listed in more than one group (short vowels,
+/* The phonics topic map. A topic listed in more than one group (short vowels,
    blends, digraphs…) is one page with one set of stars wherever it appears.
    Audio: assets/audio/s_<id>.mp3 (sounds), w_<word>.mp3 (words), r_<rime>.mp3 (word endings), n_<letter>.mp3 (letter
    names), rendered offline with Kokoro (see tools/). A missing file falls back to the voice engine. */
@@ -280,7 +280,7 @@ const TOPIC = Object.fromEntries(TOPICS.map(t => [t.id, t]));
 /* curriculum.js datasets -> card items */
 TOPICS.filter(t => t.list).forEach(t => { t.items = CURRICULUM[t.list].map(d => ({ s: d.grapheme, k: d.audio, ipa: d.ipa, fb: d.grapheme, ex: d.examples, hint: d.hint, sentences: d.sentences })) });
 
-/* Groups follow listof_phonics_topic.txt. alias = the name a shared topic has in that group. */
+/* alias = the name a shared topic has in that group. */
 const GROUPS = [
   { id: 'sv', name: 'Short Vowels', icon: '🍎', age: '4+', kid: 'a, e, i, o, u', topics: ['short', 'cvc', 'families', 'pairs', 'svblend', 'svseg', 'dictation', 'svsent', 'svmix', 'svspell'] },
   { id: 'pa', name: 'Phonemic Awareness', icon: '👂', age: '3+', kid: 'Sound play: just listen!', topics: ['listen', 'rhyme', 'syll', 'onset', 'first', 'last', 'middle', 'oblend', 'oseg', 'swap'] },
