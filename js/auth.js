@@ -8,11 +8,18 @@ const FIREBASE_CONFIG = {
     projectId: "REPLACE_WITH_YOUR_PROJECT_ID",
     appId: "REPLACE_WITH_YOUR_APP_ID"
 };
+const ROLE_ICONS = {
+    teacher: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10 12 5 2 10l10 5 10-5Z"/><path d="M6 12v5c0 1.1 2.7 3 6 3s6-1.9 6-3v-5"/></svg>',
+    parent: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-8 9 8"/><path d="M5 10v10a1 1 0 0 0 1 1h4v-6h4v6h4a1 1 0 0 0 1-1V10"/></svg>',
+    solo: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 14v-2a8 8 0 0 1 16 0v2"/><rect x="2" y="14" width="6" height="7" rx="2"/><rect x="16" y="14" width="6" height="7" rx="2"/></svg>'
+};
 const ROLES = [
-    { id: 'teacher', label: 'Class Teacher', icon: '🧑‍🏫', blurb: 'Set up topics for a whole class and see who needs more practice.' },
-    { id: 'parent', label: 'Parent', icon: '🏡', blurb: 'Follow your child’s progress and read together at home.' },
-    { id: 'solo', label: 'Just Me', icon: '🎧', blurb: 'Learn and practice phonics on your own, at your own pace.' }
+    { id: 'teacher', label: 'Class Teacher', emoji: '🧑‍🏫', icon: ROLE_ICONS.teacher },
+    { id: 'parent', label: 'Parent', emoji: '🏡', icon: ROLE_ICONS.parent },
+    { id: 'solo', label: 'Just Me', emoji: '🎧', icon: ROLE_ICONS.solo }
 ];
+const EYE_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7Z"/><circle cx="12" cy="12" r="3"/></svg>';
+const EYE_OFF_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3l18 18"/><path d="M10.6 5.1A10.6 10.6 0 0 1 12 5c7 0 11 7 11 7a13.2 13.2 0 0 1-3.2 3.9M6.6 6.6C3.7 8.4 2 12 2 12s4 7 11 7c1.4 0 2.6-.3 3.7-.7"/><path d="M9.9 9.9a3 3 0 0 0 4.2 4.2"/></svg>';
 const AUTH_ERR = {
     'auth/invalid-email': "That email doesn't look right.",
     'auth/user-not-found': 'No account with that email yet — try Sign up.',
@@ -25,9 +32,6 @@ const AUTH_ERR = {
 const authErr = e => AUTH_ERR[e && e.code] || (e && e.message) || 'Something went wrong.';
 
 let curUser = null, signupRole = null, pickedRole = null, pendingSignupRole = null;
-
-function roleRow(r) { const d = h('div', 'ag-roleblurb'); d.innerHTML = `<span class="ag-ic">${r.icon}</span><div><b>${r.label}</b><span>${r.blurb}</span></div>`; return d }
-$('#ag-role-blurbs').append(...ROLES.map(roleRow));
 
 function mountRoleTiles(container, onPick) {
     container.innerHTML = '';
@@ -66,12 +70,46 @@ $('#ag-tabbtn-signup').addEventListener('click', () => showPane('signup'));
 $('#ag-go-signup').addEventListener('click', () => showPane('signup'));
 $('#ag-go-login').addEventListener('click', () => showPane('login'));
 
-$$('.ag-eye').forEach(btn => btn.addEventListener('click', () => {
-    const input = document.getElementById(btn.dataset.for), show = input.type === 'password';
-    input.type = show ? 'text' : 'password';
-    btn.setAttribute('aria-pressed', show); btn.setAttribute('aria-label', show ? 'Hide password' : 'Show password');
-    btn.textContent = show ? '🙈' : '👁';
-}));
+$$('.ag-eye').forEach(btn => {
+    btn.innerHTML = EYE_ICON;
+    btn.addEventListener('click', () => {
+        const input = document.getElementById(btn.dataset.for), show = input.type === 'password';
+        input.type = show ? 'text' : 'password';
+        btn.setAttribute('aria-pressed', show); btn.setAttribute('aria-label', show ? 'Hide password' : 'Show password');
+        btn.innerHTML = show ? EYE_OFF_ICON : EYE_ICON;
+    });
+});
+
+/* Positive affirmations widget in the brand panel: cycles all affirmations once each, shuffled, before repeating. */
+const AFFIRMATIONS = [
+    { text: 'Every big reader started with small sounds.', emoji: '📚✨' },
+    { text: 'Small steps daily lead to massive milestones.', emoji: '👣🏆' },
+    { text: 'You are building a foundation that lasts a lifetime.', emoji: '🏗️💛' },
+    { text: 'Mistakes are just practice in disguise.', emoji: '🌱💡' },
+    { text: 'One sound, one word, one story at a time.', emoji: '🔤📖' }
+];
+const affirmContent = $('#ag-affirm-content'), affirmEmoji = $('#ag-affirm-emoji'), affirmText = $('#ag-affirm-text');
+let affirmBag = [];
+function shuffle(arr) { const a = arr.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1));[a[i], a[j]] = [a[j], a[i]] } return a }
+function nextAffirm() {
+    if (!affirmBag.length) {
+        affirmBag = shuffle(AFFIRMATIONS);
+        if (affirmBag[affirmBag.length - 1].text === affirmText.textContent && affirmBag.length > 1) affirmBag.unshift(affirmBag.pop());
+    }
+    return affirmBag.pop();
+}
+$('#ag-affirm-btn').addEventListener('click', () => {
+    const next = nextAffirm();
+    affirmContent.classList.remove('in');
+    affirmContent.classList.add('out');
+    setTimeout(() => {
+        affirmEmoji.textContent = next.emoji;
+        affirmText.textContent = next.text;
+        affirmContent.classList.remove('out');
+        affirmContent.classList.add('in');
+        setTimeout(() => affirmContent.classList.remove('in'), 320);
+    }, 200);
+});
 
 function resetForms() {
     $('#ag-form-login').reset(); $('#ag-form-signup').reset();
@@ -89,7 +127,7 @@ function onUserChanged(user) {
     curUser = user;
     if (!role) { showPane('pickrole'); lockApp(); return }
     const r = ROLES.find(x => x.id === role) || ROLES[2];
-    $('#authWho').textContent = `${r.icon} ${user.displayName || user.email} · ${r.label}`;
+    $('#authWho').textContent = `${r.emoji} ${user.displayName || user.email} · ${r.label}`;
     $('#authBadge').hidden = false;
     unlockApp();
 }

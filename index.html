@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <title>PhonicsPal</title>
     <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
@@ -15,34 +16,55 @@
 <body>
     <div id="authGate">
         <div class="ag-shell">
-            <aside class="ag-brand">
-                <div class="ag-brand-top"><span class="ag-owl" aria-hidden="true">🦉</span><span class="ag-brandname">PhonicsPal</span></div>
-                <h1>One account for every reading helper at home or school.</h1>
-                <p class="ag-tag">Sounds → Blending → Words → Sentences → Books — made for the grown-ups guiding the
-                    way.</p>
-                <div class="ag-roles" id="ag-role-blurbs"></div>
+            <aside class="ag-brand ag-panel">
+                <div class="ag-brand-top">
+                    <div class="ag-brand-mark"><span class="ag-brand-logo" aria-hidden="true">🔤</span><span class="ag-brandname">PhonicsPal</span></div>
+                    <div>
+                        <h1>One account for every reading helper at home or school.</h1>
+                        <p class="ag-tag">Sounds → Blending → Words → Sentences → Books — made for the grown-ups guiding the way.</p>
+                    </div>
+                </div>
+                <div class="ag-affirm">
+                    <div class="ag-affirm-content" id="ag-affirm-content">
+                        <span class="ag-affirm-emoji" id="ag-affirm-emoji" aria-hidden="true">📚✨</span>
+                        <p class="ag-affirm-text" id="ag-affirm-text">Every big reader started with small sounds.</p>
+                    </div>
+                    <button type="button" class="ag-affirm-btn" id="ag-affirm-btn">✨ Tap for Inspiration</button>
+                </div>
+                <div class="ag-proof">
+                    <div class="ag-stars" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.9 6.6 7.1.6-5.4 4.7 1.6 7-6.2-3.8L6 21l1.6-7L2.2 9.2l7.1-.6L12 2Z" /></svg>
+                        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.9 6.6 7.1.6-5.4 4.7 1.6 7-6.2-3.8L6 21l1.6-7L2.2 9.2l7.1-.6L12 2Z" /></svg>
+                        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.9 6.6 7.1.6-5.4 4.7 1.6 7-6.2-3.8L6 21l1.6-7L2.2 9.2l7.1-.6L12 2Z" /></svg>
+                        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.9 6.6 7.1.6-5.4 4.7 1.6 7-6.2-3.8L6 21l1.6-7L2.2 9.2l7.1-.6L12 2Z" /></svg>
+                        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.9 6.6 7.1.6-5.4 4.7 1.6 7-6.2-3.8L6 21l1.6-7L2.2 9.2l7.1-.6L12 2Z" /></svg>
+                    </div>
+                    <p>Built to make daily reading practice simple, playful, and effective — for every family and classroom.</p>
+                </div>
             </aside>
             <div class="ag-authwrap">
-                <div class="card ag-card">
-                    <div class="ag-logo"><span aria-hidden="true">🔤</span> PhonicsPal</div>
+                <div class="ag-card ag-panel">
+                    <div class="ag-logo"><span class="ag-brand-logo ag-logo-mark" aria-hidden="true">🔤</span> PhonicsPal</div>
 
-                    <div class="tabs ag-tabs" role="tablist" aria-label="Account access">
+                    <div class="ag-tabs" role="tablist" aria-label="Account access">
                         <button type="button" role="tab" id="ag-tabbtn-login" class="a" aria-selected="true">Log
                             in</button>
                         <button type="button" role="tab" id="ag-tabbtn-signup" aria-selected="false">Sign up</button>
                     </div>
 
                     <form class="ag-form" id="ag-form-login" novalidate>
+                        <h2 class="ag-formtitle">Welcome back</h2>
+                        <p class="ag-formsub">Log in to pick up right where you left off.</p>
                         <div class="ag-field">
                             <label for="ag-li-email">Email</label>
-                            <input type="email" id="ag-li-email" autocomplete="email" required>
+                            <input type="email" id="ag-li-email" placeholder="you@example.com" autocomplete="email" required>
                         </div>
                         <div class="ag-field">
                             <label for="ag-li-pass">Password</label>
                             <div class="ag-pwrow">
-                                <input type="password" id="ag-li-pass" autocomplete="current-password" required>
+                                <input type="password" id="ag-li-pass" placeholder="Your password" autocomplete="current-password" required>
                                 <button type="button" class="ag-eye" data-for="ag-li-pass" aria-pressed="false"
-                                    aria-label="Show password">👁</button>
+                                    aria-label="Show password"></button>
                             </div>
                         </div>
                         <div class="ag-rowline">
@@ -52,7 +74,7 @@
                         </div>
                         <p class="ag-note" id="ag-forgot-note" hidden></p>
                         <p class="ag-err" id="ag-li-err" aria-live="polite"></p>
-                        <button type="submit" class="btn">Log in</button>
+                        <button type="submit" class="ag-btn-primary">Log in</button>
                         <div class="ag-divider">or continue with</div>
                         <button type="button" class="ag-google" id="ag-google-login">
                             <svg viewBox="0 0 48 48" aria-hidden="true">
@@ -72,13 +94,15 @@
                     </form>
 
                     <form class="ag-form" id="ag-form-signup" hidden novalidate>
+                        <h2 class="ag-formtitle">Create your account</h2>
+                        <p class="ag-formsub">Takes less than a minute to get started.</p>
                         <div class="ag-field">
                             <label for="ag-su-name">Full name</label>
-                            <input type="text" id="ag-su-name" autocomplete="name" required>
+                            <input type="text" id="ag-su-name" placeholder="Jamie Rivera" autocomplete="name" required>
                         </div>
                         <div class="ag-field">
                             <label for="ag-su-email">Email</label>
-                            <input type="email" id="ag-su-email" autocomplete="email" required>
+                            <input type="email" id="ag-su-email" placeholder="you@example.com" autocomplete="email" required>
                         </div>
                         <div class="ag-field">
                             <label id="ag-role-label">I am a…</label>
@@ -88,24 +112,24 @@
                         <div class="ag-field">
                             <label for="ag-su-pass">Password</label>
                             <div class="ag-pwrow">
-                                <input type="password" id="ag-su-pass" autocomplete="new-password" minlength="8"
+                                <input type="password" id="ag-su-pass" placeholder="At least 8 characters" autocomplete="new-password" minlength="8"
                                     required>
                                 <button type="button" class="ag-eye" data-for="ag-su-pass" aria-pressed="false"
-                                    aria-label="Show password">👁</button>
+                                    aria-label="Show password"></button>
                             </div>
                         </div>
                         <div class="ag-field">
                             <label for="ag-su-pass2">Confirm password</label>
                             <div class="ag-pwrow">
-                                <input type="password" id="ag-su-pass2" autocomplete="new-password" required>
+                                <input type="password" id="ag-su-pass2" placeholder="Type it again" autocomplete="new-password" required>
                                 <button type="button" class="ag-eye" data-for="ag-su-pass2" aria-pressed="false"
-                                    aria-label="Show password">👁</button>
+                                    aria-label="Show password"></button>
                             </div>
                         </div>
                         <label class="chk" style="display:flex;align-items:center;gap:7px"><input type="checkbox"
                                 id="ag-su-terms">I agree to the Terms of Use and Privacy Policy</label>
                         <p class="ag-err" id="ag-su-err" aria-live="polite"></p>
-                        <button type="submit" class="btn">Create account</button>
+                        <button type="submit" class="ag-btn-primary">Create account</button>
                         <div class="ag-divider">or continue with</div>
                         <button type="button" class="ag-google" id="ag-google-signup">
                             <svg viewBox="0 0 48 48" aria-hidden="true">
@@ -125,10 +149,11 @@
                     </form>
 
                     <div id="ag-pane-pickrole" hidden>
-                        <p><b>One more thing</b> — how will you use PhonicsPal?</p>
+                        <h2 class="ag-formtitle">One more thing</h2>
+                        <p class="ag-formsub">How will you use PhonicsPal?</p>
                         <div class="ag-roletiles" id="ag-roletiles-pick" role="group"></div>
                         <p class="ag-err" id="ag-pickrole-err" aria-live="polite"></p>
-                        <button class="btn" id="ag-pickrole-continue" type="button" style="width:100%">Continue</button>
+                        <button class="ag-btn-primary" id="ag-pickrole-continue" type="button" style="width:100%">Continue</button>
                     </div>
 
                     <p class="ag-setupwarn" id="ag-setupwarn" hidden></p>
