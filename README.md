@@ -10,6 +10,9 @@ Interactive English phonics and reading practice website (MVP). Plain HTML/CSS/J
 
 Use Chrome or Edge for the best text-to-speech and word highlighting. Internet is needed to load PDF.js and JSZip from the cdnjs CDN.
 
+### Deploying (cache-busting)
+Every local `css/` and `js/` reference in `index.html` carries a `?v=YYYYMMDD` query string (e.g. `css/styles.css?v=20261001`), because GitHub Pages caches those files for 10 minutes (`max-age=600`). Without it, a visitor who loaded the site shortly before a deploy can get new HTML paired with a stale cached CSS/JS file until the cache expires — broken-looking layout, nothing actually wrong with the deploy. **Whenever you change a file under `css/` or `js/`, bump every `?v=` in `index.html` to the current date** (a find-and-replace works) so the next deploy is never served mixed with an old cached version.
+
 ## Structure
 | File | Purpose |
 |---|---|

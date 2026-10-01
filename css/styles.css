@@ -1857,6 +1857,7 @@ mark {
 @keyframes ag-affirm-bounce { 0%, 100% { transform: translateY(0) } 50% { transform: translateY(-5px) } }
 
 .ag-affirm-text { font-family: var(--ag-font); font-size: 15.5px; font-weight: 600; line-height: 1.5; margin: 0 }
+.ag-affirm-author { font-size: 12px; font-weight: 500; opacity: .75; margin: 2px 0 0 }
 
 .ag-affirm-btn {
     position: relative;

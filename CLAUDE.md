@@ -12,6 +12,7 @@ PhonicsPal: an interactive English phonics and reading-practice website (MVP), b
 - There is no build, lint, or test command — this is static HTML/CSS/JS served as-is. There is no test suite.
 - Use Chrome or Edge for best text-to-speech / word-highlighting behavior.
 - Serve over http(s) (Live Server / GitHub Pages), not `file://` — the natural-voice model cache needs a non-`file:` origin, and PDF.js/JSZip are loaded from the cdnjs CDN so internet access is required.
+- **After changing any file under `css/` or `js/`, bump the `?v=YYYYMMDD` query string on every local `<link>`/`<script>` tag in `index.html` to the current date.** GitHub Pages caches those files for 10 minutes; without a cache-busting version bump, a deploy can briefly serve new HTML paired with an old cached CSS/JS file — looks like a broken deploy, isn't one. See README "Deploying (cache-busting)".
 
 ## Architecture
 
