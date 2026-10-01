@@ -2087,3 +2087,37 @@ mark {
 @media (prefers-reduced-motion:reduce) {
     .ag-roletile, .ag-btn-primary, .ag-google { transition: none }
 }
+
+/* ---------- Mobile: compact the hero and auth gate (desktop/tablet layout untouched above) ---------- */
+@media (max-width:599px) {
+    /* align-items:center (set above for desktop/tablet) centers an overflowing flex item and
+       clips its START side inaccessibly — on a short phone viewport the auth gate's content is
+       much taller than the screen, so centering left the logo/heading/tag unreachable above the
+       fold. Mobile needs top alignment instead, so the whole thing is reachable by scrolling down. */
+    #authGate { align-items: flex-start; padding-block: 16px }
+    .ag-shell { gap: 12px }
+
+    .ag-brand { padding: 22px 20px; gap: 14px }
+    .ag-brand-top { gap: 14px }
+    .ag-brand h1 { font-size: 20px }
+    .ag-tag { margin-top: 6px; font-size: 13.5px }
+
+    .ag-affirm { padding: 16px 16px; gap: 10px }
+    .ag-affirm-emoji { font-size: 24px }
+    .ag-affirm-text { font-size: 14px }
+    .ag-proof { padding: 14px 16px }
+    .ag-proof p { font-size: 12.5px }
+
+    .ag-card { padding: 22px 18px }
+    .ag-logo { margin-bottom: 14px }
+    .ag-tabs { margin-bottom: 16px }
+    .ag-form { gap: 12px }
+    .ag-formtitle { font-size: 18px }
+    .ag-formsub { margin-bottom: 2px }
+
+    .ag-roletiles { gap: 6px }
+    .ag-roletile { padding: 10px 6px; gap: 6px }
+
+    .hero { padding: 18px }
+    .hero h1 { font-size: 24px }
+}
