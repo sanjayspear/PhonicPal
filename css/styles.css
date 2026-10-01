@@ -1770,9 +1770,14 @@ mark {
     box-shadow: var(--ag-shadow)
 }
 
-/* ---- brand panel ---- */
+/* ---- brand panel ----
+   flex-basis stays "auto" in the default stacked (column) layout: a bare "40%" there
+   would be read as a HEIGHT, clipping the affirmations widget and review card below it
+   via overflow:hidden. The row-only override below must come AFTER this base rule in
+   the file — same specificity, so source order decides, and a media query doesn't win
+   on its own. */
 .ag-brand {
-    flex: 0 0 40%;
+    flex: 0 0 auto;
     background: linear-gradient(160deg, var(--ag-accent) 0%, var(--ag-accent-2) 100%);
     color: #fff;
     padding: 44px 40px;
@@ -1781,6 +1786,10 @@ mark {
     gap: 22px;
     position: relative;
     overflow: hidden
+}
+
+@media(min-width:900px) {
+    .ag-brand { flex: 0 0 40% }
 }
 
 .ag-brand::after {
