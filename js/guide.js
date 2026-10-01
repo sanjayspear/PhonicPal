@@ -82,5 +82,8 @@ tour.addEventListener('cancel', event => {
     closeWelcomeTour();
 });
 
-/* first visit: opens by itself, so it starts silent (browsers block sound before a tap); Read aloud turns it on */
-if (!LS.get('pp_intro_seen', false)) setTimeout(openWelcomeTour, 350);
+/* first visit: opens by itself, so it starts silent (browsers block sound before a tap); Read aloud turns it on.
+   Waits for the auth gate (js/auth.js) to unlock first, so it never shows as a native <dialog> over a signed-out gate. */
+function maybeOpenTour() { if (!LS.get('pp_intro_seen', false)) setTimeout(openWelcomeTour, 350) }
+if ($('#authGate').hidden) maybeOpenTour();
+else document.addEventListener('authunlocked', maybeOpenTour, { once: true });

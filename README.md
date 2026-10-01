@@ -1,5 +1,7 @@
 # PhonicsPal
 
+© 2026 Sanjay Y M and Ashok Kumar S. All Rights Reserved. This repository is public for viewing only — no permission is granted to copy, modify, distribute, or use this software. See [LICENSE.txt](LICENSE.txt).
+
 Interactive English phonics and reading practice website (MVP). Plain HTML/CSS/JS, no build step.
 
 ## Run locally
@@ -14,6 +16,7 @@ Use Chrome or Edge for the best text-to-speech and word highlighting. Internet i
 | `index.html` | Page markup and script loading order |
 | `css/styles.css` | Theme (light/dark), layout, components |
 | `js/core.js` | Helpers, localStorage wrapper, `sp()` speech helper, navigation |
+| `js/auth.js` | Sign up / log in gate in front of the whole app — local accounts by default, switches to Firebase (+ Google sign-in) once configured; see "Accounts" below |
 | `js/env.js` | Environment detection (file/localhost/public, secure context, memory tier) that decides which voice engines are offered |
 | `js/curriculum.js` | Datasets: consonant digraphs, r-controlled vowels, diphthongs (ids, graphemes, IPA, examples, «marked» sentences) |
 | `js/speech.js` | SpeechService: natural voice (Kokoro, open source) + browser-voice fallback, phoneme playback |
@@ -32,6 +35,20 @@ Use Chrome or Edge for the best text-to-speech and word highlighting. Internet i
 | `js/home.js` | Home page word of the day, initial route |
 
 Scripts are classic (non-module) and share globals, so **load order in `index.html` matters**.
+
+## Accounts (sign up / log in)
+The whole app is gated behind sign up / log in (`js/auth.js`), with two interchangeable backends. Three roles are offered at sign-up: **Class Teacher**, **Parent**, and **Just Me**; the chosen role is stored locally per device (`localStorage`, keyed by the account's uid) — there is no cross-device sync yet, so saved vocabulary/books/progress stay per-browser as before.
+
+**Local accounts (default, no setup)** — until `FIREBASE_CONFIG` is filled in, email/password accounts are stored in `localStorage` on that device only. Passwords are salted and hashed (SHA-256 via the browser's SubtleCrypto) before storing, never kept in plain text. This is enough to try out the whole sign-up/login/role flow immediately, but it is **still not real security** — the check happens entirely in client-side JS, so it only protects against a casual look at `localStorage`, not a motivated attacker with the console open, and the **Continue with Google** button can't work in this mode (it needs a real OAuth client either way). Good for local development only; don't ship this mode to real users.
+
+**Firebase Authentication (recommended before real users)** — real accounts, password reset emails, and Google sign-in, on Firebase's free tier:
+1. Create a free project at the [Firebase console](https://console.firebase.google.com/).
+2. In **Build > Authentication > Sign-in method**, enable the **Email/Password** and **Google** providers.
+3. In **Project settings**, add a Web app and copy its config values.
+4. Paste them into the `FIREBASE_CONFIG` object at the top of `js/auth.js`, replacing the `REPLACE_WITH_...` placeholders.
+5. In **Authentication > Settings > Authorized domains**, make sure `localhost` and your deployed domain (e.g. your GitHub Pages domain) are listed.
+
+`js/auth.js` switches to Firebase automatically as soon as `FIREBASE_CONFIG` looks filled in (and falls back to local accounts with a warning if that config turns out to be invalid). Switching backends does not carry local-mode accounts over — anyone who signed up locally will need to sign up again once Firebase is turned on.
 
 ## Phonics sounds (recorded audio)
 All phonics sounds and example words are **pre-rendered audio files** in `assets/audio/` (`s_<id>.mp3` sounds, `w_<word>.mp3` words, `n_<letter>.mp3` letter names, `r_<ending>.mp3` word endings), made with the open-source Kokoro voice, so they play instantly and identically in every browser with no model download. Vowels cover short and long sounds (a e i o u / ā ē ī ō ū) with the example words from the requirements. If a file is missing the app falls back to the browser voice.
@@ -57,4 +74,5 @@ GitHub Pages cannot send COOP/COEP headers, so WebAssembly runs single-threaded 
 ## Ideas for next steps
 - Larger dictionary (bundled JSON word list, or a dictionary API called from a backend)
 - Move to ES modules or Vite/React, and wrap speech in a `SpeechService` so a cloud voice can be swapped in
-- Recorded phoneme audio clips, OCR for scanned PDFs, user accounts and sync
+- Recorded phoneme audio clips, OCR for scanned PDFs
+- Cross-device sync for saved vocabulary, books and progress (e.g. Firestore), now that accounts exist

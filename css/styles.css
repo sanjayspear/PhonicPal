@@ -1704,3 +1704,165 @@ mark {
     .magic.long .e-tile { animation: none }
     .beat.on { transform: none }
 }
+
+/* ---------- Sign up / Log in gate (Firebase Authentication) ---------- */
+#authGate {
+    position: fixed;
+    inset: 0;
+    z-index: 60;
+    background: var(--bg);
+    overflow-y: auto
+}
+
+.ag-shell {
+    display: flex;
+    flex-direction: column;
+    min-height: 100%
+}
+
+@media(min-width:900px) {
+    .ag-shell { flex-direction: row }
+}
+
+.ag-brand {
+    background: linear-gradient(135deg, var(--c3), var(--c2));
+    color: #fff;
+    padding: 28px 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 18px
+}
+
+@media(min-width:900px) {
+    .ag-brand { flex: 0 0 38%; padding: 48px 40px; justify-content: center }
+}
+
+.ag-brand-top { display: flex; align-items: center; gap: 10px }
+.ag-owl { font-size: 34px; line-height: 1 }
+.ag-brandname { font-weight: 800; font-size: 22px }
+.ag-brand h1 { font-size: clamp(22px, 4vw, 30px); margin: 4px 0 0 }
+.ag-tag { opacity: .92; max-width: 38ch; margin-top: 6px }
+.ag-roles { display: flex; flex-direction: column; gap: 10px; margin-top: 10px }
+
+.ag-roleblurb {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    background: rgba(255, 255, 255, .16);
+    border: 1px solid rgba(255, 255, 255, .3);
+    border-radius: 14px;
+    padding: 10px 12px
+}
+
+.ag-roleblurb .ag-ic { font-size: 20px }
+.ag-roleblurb b { display: block; font-size: 14px }
+.ag-roleblurb span { display: block; font-size: 13px; opacity: .9 }
+
+.ag-authwrap {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 28px 16px 40px;
+    gap: 14px
+}
+
+.ag-card { width: 100%; max-width: 420px; text-align: left }
+.ag-logo { display: flex; align-items: center; justify-content: center; gap: 6px; font-weight: 700; font-size: 18px; margin-bottom: 14px }
+.ag-tabs { display: grid; grid-template-columns: 1fr 1fr; margin-bottom: 18px }
+.ag-form { display: flex; flex-direction: column; gap: 14px }
+.ag-field { display: flex; flex-direction: column; gap: 5px }
+.ag-field label { font-size: 13px; font-weight: 700 }
+
+.ag-field input {
+    font: inherit;
+    font-size: 15px;
+    padding: 11px 12px;
+    border-radius: 11px;
+    border: 2px solid var(--bd);
+    background: var(--card);
+    color: var(--ink);
+    width: 100%
+}
+
+.ag-pwrow { position: relative; display: flex }
+.ag-pwrow input { padding-right: 42px }
+
+.ag-eye {
+    position: absolute;
+    right: 4px;
+    top: 4px;
+    bottom: 4px;
+    width: 36px;
+    border: 0;
+    background: none;
+    color: var(--mut);
+    cursor: pointer;
+    font-size: 16px;
+    border-radius: 8px
+}
+
+.ag-eye:hover { color: var(--ink) }
+
+.ag-roletiles { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px }
+
+.ag-roletile {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    padding: 12px 4px;
+    border: 2px solid var(--bd);
+    border-radius: 14px;
+    background: var(--bg);
+    color: var(--ink);
+    font: inherit;
+    cursor: pointer;
+    touch-action: manipulation;
+    min-width: 0
+}
+
+.ag-roletile .ag-ic { font-size: 22px }
+.ag-roletile .ag-lbl { font-size: 12px; font-weight: 700; text-align: center; line-height: 1.2 }
+.ag-roletile[aria-pressed="true"] { border-color: var(--c3); background: var(--k3) }
+
+.ag-rowline { display: flex; align-items: center; justify-content: space-between; gap: 10px; font-size: 13px; color: var(--mut) }
+.ag-note { font-size: 12px; color: var(--mut); background: var(--bg); border: 1px solid var(--bd); border-radius: 8px; padding: 6px 10px; margin: -4px 0 0 }
+.ag-err { font-size: 12px; color: #d1483f; font-weight: 600; min-height: 14px; margin: 0 }
+
+.ag-divider { display: flex; align-items: center; gap: 10px; color: var(--mut); font-size: 12px }
+.ag-divider::before, .ag-divider::after { content: ""; flex: 1; height: 1px; background: var(--bd) }
+
+.ag-google {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    font: inherit;
+    font-weight: 600;
+    font-size: 14px;
+    color: #1f1f1f;
+    background: #fff;
+    border: 1px solid #dadce0;
+    border-radius: 999px;
+    padding: 10px;
+    cursor: pointer;
+    touch-action: manipulation
+}
+
+.ag-google:hover { background: #f7f8f8 }
+.ag-google svg { width: 18px; height: 18px }
+.ag-switch { text-align: center; font-size: 13px; color: var(--mut); margin: 0 }
+
+.ag-setupwarn {
+    font-size: 13px;
+    color: var(--mut);
+    background: var(--k2);
+    border-radius: 10px;
+    padding: 10px;
+    margin: 16px 0 0
+}
+
+.ag-setupwarn.ag-note-warn { color: #d1483f; background: var(--k1) }
+
+.ag-badge { display: inline-flex; align-items: center; gap: 8px; margin-left: 10px; font-size: 14px }
