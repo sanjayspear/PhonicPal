@@ -1748,6 +1748,7 @@ mark {
         var(--bg);
     display: flex;
     justify-content: center;
+    align-items: center;
     padding-block: 48px
 }
 
