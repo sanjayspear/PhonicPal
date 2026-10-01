@@ -80,7 +80,10 @@ $$('.ag-eye').forEach(btn => {
     });
 });
 
-/* Positive affirmations widget in the brand panel: cycles all affirmations once each, shuffled, before repeating. */
+/* Positive affirmations widget in the brand panel. Fetches a live quote from ZenQuotes (free, no
+   key, CORS-enabled) for real variety; on any failure (offline, rate-limited, blocked) falls back
+   to this local list, cycling it once each, shuffled, before repeating — same online-API-with-
+   local-fallback shape as js/dictionary.js. */
 const AFFIRMATIONS = [
     { text: 'Every big reader started with small sounds.', emoji: '📚✨' },
     { text: 'Small steps daily lead to massive milestones.', emoji: '👣🏆' },
@@ -88,26 +91,54 @@ const AFFIRMATIONS = [
     { text: 'Mistakes are just practice in disguise.', emoji: '🌱💡' },
     { text: 'One sound, one word, one story at a time.', emoji: '🔤📖' }
 ];
-const affirmContent = $('#ag-affirm-content'), affirmEmoji = $('#ag-affirm-emoji'), affirmText = $('#ag-affirm-text');
-let affirmBag = [];
+const AFFIRM_EMOJIS = ['📚✨', '🌟📖', '💡🌱', '🎯💫', '🧠💭', '✨📘'];
+const randomAffirmEmoji = () => AFFIRM_EMOJIS[Math.floor(Math.random() * AFFIRM_EMOJIS.length)];
+
+const affirmContent = $('#ag-affirm-content'), affirmEmoji = $('#ag-affirm-emoji');
+const affirmText = $('#ag-affirm-text'), affirmAuthor = $('#ag-affirm-author'), affirmBtn = $('#ag-affirm-btn');
+const AFFIRM_BTN_DEFAULT = affirmBtn.textContent;
+let affirmBag = [], affirmBusy = false;
 function shuffle(arr) { const a = arr.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1));[a[i], a[j]] = [a[j], a[i]] } return a }
-function nextAffirm() {
+function nextLocalAffirm() {
     if (!affirmBag.length) {
         affirmBag = shuffle(AFFIRMATIONS);
         if (affirmBag[affirmBag.length - 1].text === affirmText.textContent && affirmBag.length > 1) affirmBag.unshift(affirmBag.pop());
     }
     return affirmBag.pop();
 }
-$('#ag-affirm-btn').addEventListener('click', () => {
-    const next = nextAffirm();
+async function nextAffirm() {
+    const ac = new AbortController(), to = setTimeout(() => ac.abort(), 5000);
+    try {
+        const res = await fetch('https://zenquotes.io/api/random', { signal: ac.signal });
+        clearTimeout(to);
+        if (!res.ok) throw new Error('bad status');
+        const data = await res.json();
+        const q = data && data[0];
+        if (!q || !q.q) throw new Error('empty');
+        return { text: q.q, author: q.a, emoji: randomAffirmEmoji() };
+    } catch (e) {
+        clearTimeout(to);
+        console.warn('[PhonicsPal] Live affirmation fetch failed, using a local one:', e);
+        return nextLocalAffirm();
+    }
+}
+affirmBtn.addEventListener('click', async () => {
+    if (affirmBusy) return;
+    affirmBusy = true;
+    affirmBtn.textContent = 'Finding a thought…';
+    const pending = nextAffirm();
     affirmContent.classList.remove('in');
     affirmContent.classList.add('out');
-    setTimeout(() => {
+    setTimeout(async () => {
+        const next = await pending;
         affirmEmoji.textContent = next.emoji;
         affirmText.textContent = next.text;
+        affirmAuthor.textContent = next.author ? `— ${next.author}` : '';
+        affirmAuthor.hidden = !next.author;
         affirmContent.classList.remove('out');
         affirmContent.classList.add('in');
-        setTimeout(() => affirmContent.classList.remove('in'), 320);
+        affirmBtn.textContent = AFFIRM_BTN_DEFAULT;
+        setTimeout(() => { affirmContent.classList.remove('in'); affirmBusy = false }, 320);
     }, 200);
 });
 
