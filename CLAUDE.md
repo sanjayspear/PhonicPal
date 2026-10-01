@@ -17,11 +17,21 @@ PhonicsPal: an interactive English phonics and reading-practice website (MVP), b
 
 ### Script loading is load-order-dependent, non-module, global-scope
 
-All `js/*.js` files are classic scripts (no ES modules) that share globals directly (`$`, `LS`, `sp`, `ENV`, `Speech`, etc. from `js/core.js` / `js/env.js`). **The `<script>` order in `index.html` is the dependency order** — a file may rely on globals defined by every file above it. When adding a new script, add it in the right position in `index.html`, not just anywhere. Current order: `core.js → env.js → speech.js → dictionary.js → reader.js → curriculum.js → topics.js → custom-phonics.js → phonics-guide.js → phonics-views.js → phonics.js → phonics-game.js → books.js → vocabulary.js → home.js → guide.js`.
+All `js/*.js` files are classic scripts (no ES modules) that share globals directly (`$`, `LS`, `sp`, `ENV`, `Speech`, etc. from `js/core.js` / `js/env.js`). **The `<script>` order in `index.html` is the dependency order** — a file may rely on globals defined by every file above it. When adding a new script, add it in the right position in `index.html`, not just anywhere. Current order: `core.js → auth.js → env.js → speech.js → dictionary.js → reader.js → curriculum.js → topics.js → custom-phonics.js → phonics-guide.js → phonics-views.js → phonics.js → phonics-game.js → books.js → vocabulary.js → home.js → guide.js`.
 
 ### Navigation / page model
 
 `index.html` is a single page with one `<section>` per top-level route (`home`, `phonics`, `read`, `books`, `vocab`, `help`), toggled by `go(id)` in `core.js` via `hidden`. Nav buttons use `data-go="<section id>"`; clicking anywhere with `[data-go]` calls `go()`. `go()` fires a `tabchange` CustomEvent (`{from, to}`) only on real section changes — `reader.js` listens for this to pause/stop any in-progress speech when the user navigates away.
+
+### Auth gate
+
+`js/auth.js` wraps the whole app behind sign up / log in. The `#authGate` overlay (markup at the very top of `<body>`, before `<header>`) sits above everything with a high `z-index`; while signed out, `lockApp()` sets `header.inert` / `main.inert` (note: `$('header')`/`$('main')` each resolve to the *first* matching element in document order, so the gate's own wrapper inside `#authGate` must never itself be a `<header>`/`<main>` tag — it's a `<div class="ag-authwrap">` specifically to avoid shadowing the real ones) and keeps the gate visible; `unlockApp()` reverses that once a user is signed in with a known role. Sign-up collects one of three roles (`teacher`/`parent`/`solo`, see the `ROLES` array) via tile buttons; a first-time Google sign-in (which skips the role form) is routed through an inline "pick a role" pane (`#ag-pane-pickrole`) instead. The role is stored in `localStorage` per uid (`pp_role_<uid>`), not synced anywhere, so switching devices currently means picking a role again.
+
+Two interchangeable **providers** sit behind one shared set of calls (`doSignUp`/`doLogIn`/`doGoogle`/`doReset`/`doLogOut`, assigned by whichever provider is active) and a shared `onUserChanged(user | null)` entry point that both call into:
+- `localProvider()` — the default. Accounts live in `localStorage` (`pp_local_users`, `pp_local_session`), this device only. Passwords are salted + SHA-256 hashed via `SubtleCrypto` before storing (falls back to a weak non-cryptographic hash on a non-secure context where `SubtleCrypto` is unavailable, e.g. `file://`) — never stored in plain text, but still not real security, since the comparison happens in client-side JS that anyone with the console open can read or bypass. No external setup, but **Google sign-in can't work in this mode** (it needs a real OAuth client regardless of backend) and it's not meant to reach real users.
+- `firebaseProvider()` — used once `FIREBASE_CONFIG` at the top of `auth.js` is filled in with a real Firebase project's web-app config (see README "Accounts"); loaded via CDN `firebase-app-compat.js` / `firebase-auth-compat.js` in `index.html`'s `<head>`. Falls back to `localProvider()` with a warning if `firebase.initializeApp` throws (e.g. bad config).
+
+Because `js/guide.js`'s first-visit welcome tour opens a native `<dialog>` (`showModal()`, which renders in the browser's top layer above any z-index), it cannot simply be scheduled on load — it would show over a locked gate. It instead waits for the `authunlocked` `CustomEvent` that `unlockApp()` dispatches. Any future auto-opening dialog needs the same treatment; a dialog opened from a user click inside `<main>` doesn't, since `main.inert` already blocks reaching it while signed out.
 
 ### Voice/speech architecture (the core complexity of this app)
 
@@ -53,4 +63,4 @@ When adding a new phonics topic, it generally touches `topics.js` (data) and may
 
 ### Persistence
 
-Everything is client-side: `localStorage` via the `LS` helper in `core.js` (custom phonics cards, saved vocabulary, preferences) and IndexedDB for the book library (`books.js`). There is no backend/server component beyond serving static files.
+Everything is client-side, including accounts by default: `localStorage` via the `LS` helper in `core.js` (custom phonics cards, saved vocabulary, preferences, the signed-in user's role, and — under `localProvider()` — the local accounts themselves) and IndexedDB for the book library (`books.js`). Firebase Authentication (see "Auth gate" above), when configured, is the one external service in the stack, and it stores only accounts (email/password or Google identity) — no app data syncs through it yet.
